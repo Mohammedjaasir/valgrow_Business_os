@@ -6,8 +6,11 @@ import {
   Param,
   Body,
   Query,
+  Res,
 } from "@nestjs/common";
+import { Response } from "express";
 import { PurchaseOrdersService } from "./purchase-orders.service";
+import { PdfGeneratorService } from "../documents/pdf-generator.service";
 import { CurrentOrg } from "../../common/decorators/current-org.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { RequirePermissions } from "../../common/decorators/require-permissions.decorator";
@@ -19,7 +22,10 @@ import {
 
 @Controller("purchase-orders")
 export class PurchaseOrdersController {
-  constructor(private readonly service: PurchaseOrdersService) {}
+  constructor(
+    private readonly service: PurchaseOrdersService,
+    private readonly pdfService: PdfGeneratorService,
+  ) {}
 
   @RequirePermissions("purchasing.read")
   @Get()
@@ -31,6 +37,22 @@ export class PurchaseOrdersController {
   @Get(":id")
   getOne(@Param("id") id: string, @CurrentOrg("id") orgId: string) {
     return this.service.getPurchaseOrderById(id, orgId);
+  }
+
+  @RequirePermissions("purchasing.read")
+  @Get(":id/pdf")
+  async downloadPdf(
+    @Param("id") id: string,
+    @CurrentOrg("id") orgId: string,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename } = await this.pdfService.generatePurchaseOrderPdf(
+      id,
+      orgId,
+    );
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 
   @RequirePermissions("purchasing.create")

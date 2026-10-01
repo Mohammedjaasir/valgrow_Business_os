@@ -32,7 +32,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Receipt, CreditCard, Send } from "lucide-react";
+import { downloadFile } from "@/lib/api-client";
+import { Plus, Trash2, Receipt, CreditCard, Send, Download } from "lucide-react";
 
 const title = "Sales Invoices";
 const description = "Billing invoices, payment status tracking, and customer receivables.";
@@ -68,6 +69,18 @@ function SalesInvoicesPage() {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownloadPdf = async (id: string, invNumber: string) => {
+    setDownloadingId(id);
+    try {
+      await downloadFile(`/sales-invoices/${id}/pdf`, `${invNumber}.pdf`);
+    } catch (err: any) {
+      alert(err.message || "Failed to download invoice PDF");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   // Form State
   const [customerId, setCustomerId] = useState("");
@@ -239,6 +252,17 @@ function SalesInvoicesPage() {
                 <CreditCard className="mr-1 h-3 w-3" /> Record Payment
               </Button>
             )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              disabled={downloadingId === inv.id}
+              onClick={() => handleDownloadPdf(inv.id, inv.invoiceNumber)}
+            >
+              <Download className="mr-1 h-3 w-3" />
+              {downloadingId === inv.id ? "PDF..." : "PDF"}
+            </Button>
           </div>
         );
       },

@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/foundation/page-header";
 import { StatCard } from "@/components/foundation/stat-card";
+import { downloadFile } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -93,39 +94,25 @@ function ReportsPage() {
 
   const { data: salesReport, isLoading: isSalesLoading } = useSalesReport(salesFilters);
 
-  const handleExportSales = () => {
-    if (!salesReport?.records) return;
-    const headers = [
-      "Receipt/Invoice #",
-      "Type",
-      "Date",
-      "Customer",
-      "Branch",
-      "Warehouse",
-      "Subtotal",
-      "Tax",
-      "Discount",
-      "Total Amount",
-      "Paid Amount",
-      "Payment Method",
-      "Status",
-    ];
-    const rows = salesReport.records.map((r) => [
-      r.number,
-      r.type,
-      new Date(r.date).toLocaleString("en-IN"),
-      r.customerName,
-      r.branchName,
-      r.warehouseName,
-      r.subtotal,
-      r.tax,
-      r.discount,
-      r.total,
-      r.paid,
-      r.paymentMethods,
-      r.status,
-    ]);
-    exportReportToCsv("Sales_Report", headers, rows);
+  const handleExportSales = async (format: "csv" | "xlsx" = "csv") => {
+    try {
+      const params = new URLSearchParams();
+      params.append("format", format);
+      if (salesDateFrom) params.append("dateFrom", salesDateFrom);
+      if (salesDateTo) params.append("dateTo", salesDateTo);
+      if (salesCustomerId !== "ALL") params.append("customerId", salesCustomerId);
+      if (salesBranchId !== "ALL") params.append("branchId", salesBranchId);
+      if (salesPaymentMethod !== "ALL") params.append("paymentMethod", salesPaymentMethod);
+      if (salesSearch) params.append("search", salesSearch);
+
+      const todayStr = new Date().toISOString().split("T")[0];
+      await downloadFile(
+        `/reports/sales/export?${params.toString()}`,
+        `sales-report-${todayStr}.${format}`,
+      );
+    } catch (err: any) {
+      alert(err.message || "Failed to export sales report");
+    }
   };
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -202,37 +189,25 @@ function ReportsPage() {
 
   const { data: invReport, isLoading: isInvLoading } = useInventoryMovementReport(invFilters);
 
-  const handleExportInventory = () => {
-    if (!invReport?.records) return;
-    const headers = [
-      "Date/Time",
-      "Product",
-      "SKU",
-      "Movement Type",
-      "Quantity",
-      "Unit Cost (₹)",
-      "Total Cost (₹)",
-      "Warehouse",
-      "Location",
-      "Reference",
-      "Performed By",
-      "Notes",
-    ];
-    const rows = invReport.records.map((r) => [
-      new Date(r.createdAt).toLocaleString("en-IN"),
-      r.productName,
-      r.productSku,
-      r.movementType,
-      r.quantity,
-      r.unitCost,
-      r.totalCost,
-      r.warehouseName,
-      r.locationName,
-      `${r.referenceType}: ${r.referenceId}`,
-      r.performedBy,
-      r.notes,
-    ]);
-    exportReportToCsv("Inventory_Movement_Report", headers, rows);
+  const handleExportInventory = async (format: "csv" | "xlsx" = "csv") => {
+    try {
+      const params = new URLSearchParams();
+      params.append("format", format);
+      if (invDateFrom) params.append("dateFrom", invDateFrom);
+      if (invDateTo) params.append("dateTo", invDateTo);
+      if (invWarehouseId !== "ALL") params.append("warehouseId", invWarehouseId);
+      if (invLocationId !== "ALL") params.append("locationId", invLocationId);
+      if (invMovementType !== "ALL") params.append("movementType", invMovementType);
+      if (invSearch) params.append("search", invSearch);
+
+      const todayStr = new Date().toISOString().split("T")[0];
+      await downloadFile(
+        `/reports/inventory-movements/export?${params.toString()}`,
+        `inventory-movements-${todayStr}.${format}`,
+      );
+    } catch (err: any) {
+      alert(err.message || "Failed to export inventory movement report");
+    }
   };
 
   return (
@@ -242,18 +217,33 @@ function ReportsPage() {
         description={description}
         eyebrow="Intelligence & Auditing"
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (activeTab === "sales") handleExportSales();
-              else if (activeTab === "customers") handleExportCustomers();
-              else handleExportInventory();
-            }}
-          >
-            <Download className="mr-1.5 h-4 w-4" />
-            Export CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (activeTab === "sales") handleExportSales("csv");
+                else if (activeTab === "customers") handleExportCustomers();
+                else handleExportInventory("csv");
+              }}
+            >
+              <Download className="mr-1.5 h-4 w-4" />
+              Export CSV
+            </Button>
+            {activeTab !== "customers" && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  if (activeTab === "sales") handleExportSales("xlsx");
+                  else handleExportInventory("xlsx");
+                }}
+              >
+                <Download className="mr-1.5 h-4 w-4" />
+                Export Excel
+              </Button>
+            )}
+          </div>
         }
       />
 

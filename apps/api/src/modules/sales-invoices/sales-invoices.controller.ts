@@ -6,17 +6,23 @@ import {
   Body,
   Param,
   Query,
+  Res,
 } from "@nestjs/common";
+import { Response } from "express";
 import { SalesInvoicesService } from "./sales-invoices.service";
 import { CreateSalesInvoiceDto } from "./dto/create-sales-invoice.dto";
 import { UpdateSalesInvoiceDto } from "./dto/update-sales-invoice.dto";
+import { PdfGeneratorService } from "../documents/pdf-generator.service";
 import { CurrentOrg } from "../../common/decorators/current-org.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { RequirePermissions } from "../../common/decorators/require-permissions.decorator";
 
 @Controller("sales-invoices")
 export class SalesInvoicesController {
-  constructor(private readonly salesInvoicesService: SalesInvoicesService) {}
+  constructor(
+    private readonly salesInvoicesService: SalesInvoicesService,
+    private readonly pdfService: PdfGeneratorService,
+  ) {}
 
   @Get()
   @RequirePermissions("sales.read")
@@ -34,6 +40,22 @@ export class SalesInvoicesController {
     @CurrentOrg("id") organizationId: string,
   ) {
     return this.salesInvoicesService.getSalesInvoiceById(id, organizationId);
+  }
+
+  @Get(":id/pdf")
+  @RequirePermissions("sales.read")
+  async downloadPdf(
+    @Param("id") id: string,
+    @CurrentOrg("id") organizationId: string,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename } = await this.pdfService.generateSalesInvoicePdf(
+      id,
+      organizationId,
+    );
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 
   @Post()

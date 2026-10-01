@@ -26,7 +26,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Eye, Send, CheckCircle2, Trash2, Ban } from "lucide-react";
+import { downloadFile } from "@/lib/api-client";
+import { Plus, Eye, Send, CheckCircle2, Trash2, Ban, Download } from "lucide-react";
 
 const title = "Purchase Orders";
 const description = "Binding purchase orders to vendors, terms, line pricing, and status tracking.";
@@ -66,6 +67,18 @@ function PurchaseOrdersPage() {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedPO, setSelectedPO] = useState<PurchaseOrderItem | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownloadPdf = async (id: string, orderNumber: string) => {
+    setDownloadingId(id);
+    try {
+      await downloadFile(`/purchase-orders/${id}/pdf`, `${orderNumber}.pdf`);
+    } catch (err: any) {
+      alert(err.message || "Failed to download Purchase Order PDF");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   // Form State
   const [supplierId, setSupplierId] = useState("");
@@ -184,6 +197,16 @@ function PurchaseOrdersPage() {
                 <Ban className="h-4 w-4" />
               </Button>
             )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-primary"
+              disabled={downloadingId === item.id}
+              onClick={() => handleDownloadPdf(item.id, item.orderNumber)}
+              title="Download PDF"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
         );
       },

@@ -34,7 +34,7 @@ import {
   type CustomerPaymentMethod,
   type POSSaleResult,
 } from "@/hooks/queries/usePOSCheckout";
-
+import { downloadFile } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -254,6 +254,15 @@ function POSRegisterPage() {
         unitPrice: price,
       },
     });
+  };
+
+  const handleDownloadReceipt = async (saleId?: string, receiptNum?: string) => {
+    if (!saleId) return;
+    try {
+      await downloadFile(`/pos/sales/${saleId}/receipt`, `${receiptNum || "POS-Receipt"}.pdf`);
+    } catch (err: any) {
+      alert(err.message || "Failed to download POS receipt PDF");
+    }
   };
 
   // Held Carts Modal State
@@ -1002,9 +1011,13 @@ function POSRegisterPage() {
             </div>
 
             <DialogFooter className="flex-row gap-2 sm:justify-between">
-              <Button variant="outline" className="flex-1" onClick={() => window.print()}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => handleDownloadReceipt(completedSale?.sale.id, completedSale?.sale.receiptNumber)}
+              >
                 <Printer className="mr-2 h-4 w-4" />
-                Print Receipt
+                Download / Print Receipt
               </Button>
 
               <Button

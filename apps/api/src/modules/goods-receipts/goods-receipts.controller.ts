@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Param, Body, Query } from "@nestjs/common";
+import { Controller, Get, Post, Param, Body, Query, Res } from "@nestjs/common";
+import { Response } from "express";
 import { GoodsReceiptsService } from "./goods-receipts.service";
+import { PdfGeneratorService } from "../documents/pdf-generator.service";
 import { CurrentOrg } from "../../common/decorators/current-org.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { RequirePermissions } from "../../common/decorators/require-permissions.decorator";
@@ -7,7 +9,10 @@ import { CreateGoodsReceiptDto } from "./dto/create-goods-receipt.dto";
 
 @Controller("goods-receipts")
 export class GoodsReceiptsController {
-  constructor(private readonly service: GoodsReceiptsService) {}
+  constructor(
+    private readonly service: GoodsReceiptsService,
+    private readonly pdfService: PdfGeneratorService,
+  ) {}
 
   @RequirePermissions("purchasing.read")
   @Get()
@@ -19,6 +24,22 @@ export class GoodsReceiptsController {
   @Get(":id")
   getOne(@Param("id") id: string, @CurrentOrg("id") orgId: string) {
     return this.service.getGoodsReceiptById(id, orgId);
+  }
+
+  @RequirePermissions("purchasing.read")
+  @Get(":id/pdf")
+  async downloadPdf(
+    @Param("id") id: string,
+    @CurrentOrg("id") orgId: string,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename } = await this.pdfService.generateGoodsReceiptPdf(
+      id,
+      orgId,
+    );
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 
   @RequirePermissions("purchasing.receive")

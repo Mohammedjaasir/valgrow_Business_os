@@ -60,6 +60,7 @@ import { TaxAccountingModule } from "./modules/tax-accounting/tax-accounting.mod
 import { FinancialReportsModule } from "./modules/financial-reports/financial-reports.module";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
+import { DocumentsModule } from "./modules/documents/documents.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { PermissionsGuard } from "./common/guards/permissions.guard";
 
@@ -127,6 +128,7 @@ import { PermissionsGuard } from "./common/guards/permissions.guard";
     FinancialReportsModule,
     ReportsModule,
     DashboardModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [

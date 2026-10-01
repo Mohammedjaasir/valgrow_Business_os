@@ -120,3 +120,50 @@ export async function apiClient<T = any>(
 
   return data as T;
 }
+
+export async function downloadFile(
+  endpoint: string,
+  fallbackFilename: string,
+): Promise<void> {
+  const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
+  const orgId = getActiveOrgId();
+
+  const headers: Record<string, string> = {};
+  if (orgId) {
+    headers["X-Organization-Id"] = orgId;
+  }
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    let errorMsg = `Download failed with status ${response.status}`;
+    try {
+      const data = await response.json();
+      if (data?.message) errorMsg = data.message;
+    } catch {}
+    throw new ApiError(response.status, errorMsg);
+  }
+
+  let filename = fallbackFilename;
+  const disposition = response.headers.get("Content-Disposition");
+  if (disposition && disposition.includes("filename=")) {
+    const matches = /filename="?([^";]+)"?/.exec(disposition);
+    if (matches && matches[1]) {
+      filename = matches[1];
+    }
+  }
+
+  const blob = await response.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(blobUrl);
+}

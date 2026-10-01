@@ -322,10 +322,19 @@ export class ReportsService {
           select: { id: true, totalAmount: true, paidAmount: true, createdAt: true },
         },
         salesInvoices: {
-          where: { status: { in: ["POSTED", "PARTIALLY_PAID", "PAID"] } },
+          where: {
+            status: { in: ["POSTED", "PARTIALLY_PAID", "PAID"] },
+            posSales: { none: {} },
+          },
           select: { id: true, totalAmount: true, paidAmount: true, invoiceDate: true },
         },
         customerPayments: {
+          where: {
+            OR: [
+              { salesInvoiceId: null },
+              { invoice: { posSales: { none: {} } } },
+            ],
+          },
           select: { id: true, amount: true, paymentDate: true },
         },
       },

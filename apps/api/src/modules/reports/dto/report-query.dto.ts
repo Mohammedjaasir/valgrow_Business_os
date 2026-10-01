@@ -30,6 +30,10 @@ export class SalesReportQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsString()
+  format?: 'csv' | 'xlsx';
 }
 
 export class CustomerReportQueryDto {
@@ -94,4 +98,8 @@ export class InventoryMovementReportQueryDto {
   @IsNumber()
   @Min(1)
   limit?: number = 50;
+
+  @IsOptional()
+  @IsString()
+  format?: 'csv' | 'xlsx';
 }

@@ -22,7 +22,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, CheckCircle2, Ban, AlertTriangle } from "lucide-react";
+import { downloadFile } from "@/lib/api-client";
+import { Plus, CheckCircle2, Ban, AlertTriangle, Download } from "lucide-react";
 
 const title = "Goods Receipts";
 const description =
@@ -48,6 +49,18 @@ function GoodsReceiptsPage() {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [postConfirmGRN, setPostConfirmGRN] = useState<GoodsReceiptItem | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownloadPdf = async (id: string, receiptNumber: string) => {
+    setDownloadingId(id);
+    try {
+      await downloadFile(`/goods-receipts/${id}/pdf`, `${receiptNumber}.pdf`);
+    } catch (err: any) {
+      alert(err.message || "Failed to download Goods Receipt PDF");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   // GRN Creation State
   const [selectedPOId, setSelectedPOId] = useState("");
@@ -160,6 +173,16 @@ function GoodsReceiptsPage() {
                 <Ban className="h-4 w-4" />
               </Button>
             )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-primary"
+              disabled={downloadingId === item.id}
+              onClick={() => handleDownloadPdf(item.id, item.receiptNumber)}
+              title="Download PDF"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
         );
       },

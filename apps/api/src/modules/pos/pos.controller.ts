@@ -7,8 +7,10 @@ import {
   Body,
   Param,
   Query,
+  Res,
   UseGuards,
 } from "@nestjs/common";
+import { Response } from "express";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { PermissionsGuard } from "../../common/guards/permissions.guard";
 import { RequirePermissions } from "../../common/decorators/require-permissions.decorator";
@@ -19,6 +21,7 @@ import { PosProductSearchService } from "./services/pos-product-search.service";
 import { PosCartService } from "./services/pos-cart.service";
 import { PosCheckoutService } from "./services/pos-checkout.service";
 import { PosRefundService } from "./services/pos-refund.service";
+import { PdfGeneratorService } from "../documents/pdf-generator.service";
 import { OpenPosSessionDto, ClosePosSessionDto } from "./dto/session.dto";
 import {
   CreatePosCartDto,
@@ -36,6 +39,7 @@ export class PosController {
     private readonly cartService: PosCartService,
     private readonly checkoutService: PosCheckoutService,
     private readonly refundService: PosRefundService,
+    private readonly pdfService: PdfGeneratorService,
   ) {}
 
   // ==================================================
@@ -218,6 +222,32 @@ export class PosController {
   @RequirePermissions("pos.read")
   getSaleById(@CurrentOrg("id") orgId: string, @Param("id") id: string) {
     return this.checkoutService.getSaleById(orgId, id);
+  }
+
+  @Get("sales/:id/receipt")
+  @RequirePermissions("pos.read")
+  async downloadReceipt(
+    @Param("id") id: string,
+    @CurrentOrg("id") orgId: string,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename } = await this.pdfService.generatePosReceiptPdf(
+      id,
+      orgId,
+    );
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
+  }
+
+  @Get("sales/:id/pdf")
+  @RequirePermissions("pos.read")
+  async downloadPdf(
+    @Param("id") id: string,
+    @CurrentOrg("id") orgId: string,
+    @Res() res: Response,
+  ) {
+    return this.downloadReceipt(id, orgId, res);
   }
 
   @Post("sales/:id/refund")
