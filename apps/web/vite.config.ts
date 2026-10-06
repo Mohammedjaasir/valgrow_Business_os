@@ -25,7 +25,15 @@ async function buildConfig({ command, mode }: ConfigEnv): Promise<UserConfig> {
 
   if (command === "build") {
     const { nitro } = await import("nitro/vite");
-    plugins.push(nitro({ defaultPreset: "cloudflare-module" }));
+    // In production the browser calls the API through this app's own origin
+    // (/api/** -> API_PROXY_TARGET), so auth cookies stay first-party.
+    const apiTarget = process.env["API_PROXY_TARGET"]?.replace(/\/+$/, "");
+    plugins.push(
+      nitro({
+        defaultPreset: "cloudflare-module",
+        ...(apiTarget ? { routeRules: { "/api/**": { proxy: `${apiTarget}/**` } } } : {}),
+      }),
+    );
   }
 
   plugins.push(viteReact());
