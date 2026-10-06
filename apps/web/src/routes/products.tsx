@@ -278,7 +278,7 @@ function ProductsPage() {
 
   return (
     <>
-      <ListPage
+      <ListPage guide="products"
         title={title}
         description={description}
         eyebrow="Master Data"

@@ -216,7 +216,7 @@ function GoodsReceiptsPage() {
 
   return (
     <>
-      <ListPage
+      <ListPage guide="goods-receipts"
         title={title}
         description={description}
         eyebrow="Purchasing & Inventory Receiving"

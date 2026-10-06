@@ -1,15 +1,20 @@
 import type { ReactNode } from "react";
+import { PageGuideButton } from "@/components/onboarding/page-guide";
+import type { PageGuideId } from "@/lib/onboarding-content";
 
 export function PageHeader({
   title,
   description,
   actions,
   eyebrow,
+  guide,
 }: {
   title: string;
   description?: string;
   actions?: ReactNode;
   eyebrow?: string;
+  /** Adds a "How this works" panel for this page. */
+  guide?: PageGuideId;
 }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
@@ -20,7 +25,12 @@ export function PageHeader({
           <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions || guide ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {guide ? <PageGuideButton id={guide} /> : null}
+          {actions}
+        </div>
+      ) : null}
     </div>
   );
 }

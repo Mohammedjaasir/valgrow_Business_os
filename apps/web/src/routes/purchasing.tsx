@@ -82,7 +82,7 @@ function PurchasingDashboardPage() {
 
   return (
     <AppShell>
-      <PageHeader
+      <PageHeader guide="purchasing"
         title={title}
         description={description}
         eyebrow="Procurement & Inbound Operations"

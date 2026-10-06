@@ -228,7 +228,7 @@ function ReportsPage() {
 
   return (
     <AppShell>
-      <PageHeader
+      <PageHeader guide="reports"
         title={title}
         description={description}
         eyebrow="Intelligence & Auditing"

@@ -329,7 +329,7 @@ function InventoryStockPage() {
 
   return (
     <>
-      <ListPage
+      <ListPage guide="inventory"
         title={title}
         description={description}
         eyebrow="Inventory"

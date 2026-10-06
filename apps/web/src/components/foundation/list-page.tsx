@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { staggerContainer, staggerItem } from "@/lib/motion";
+import type { PageGuideId } from "@/lib/onboarding-content";
 
 export type ListRow = Record<string, string>;
 
@@ -110,6 +111,7 @@ export function ListPage({
   isLoading = false,
   isError = false,
   onRetry,
+  guide,
 }: {
   title: string;
   description: string;
@@ -123,6 +125,7 @@ export function ListPage({
   isLoading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
+  guide?: PageGuideId;
 }) {
   return (
     <AppShell>
@@ -130,6 +133,7 @@ export function ListPage({
         title={title}
         description={description}
         {...(eyebrow ? { eyebrow } : {})}
+        {...(guide ? { guide } : {})}
         actions={
           <>
             <Button variant="outline">

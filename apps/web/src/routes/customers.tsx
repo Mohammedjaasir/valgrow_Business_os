@@ -262,7 +262,7 @@ function CustomersPage() {
 
   return (
     <>
-      <ListPage
+      <ListPage guide="customers"
         title={title}
         description={description}
         eyebrow="Sales & Accounts"

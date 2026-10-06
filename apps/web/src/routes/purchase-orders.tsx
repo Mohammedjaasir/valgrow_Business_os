@@ -244,7 +244,7 @@ function PurchaseOrdersPage() {
 
   return (
     <>
-      <ListPage
+      <ListPage guide="purchase-orders"
         title={title}
         description={description}
         eyebrow="Purchasing"

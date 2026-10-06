@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { AppShell } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/foundation/states";
+import { PageGuideButton } from "@/components/onboarding/page-guide";
 import { staggerContainer, staggerItem } from "@/lib/motion";
 import { useCurrentUser } from "@/hooks/queries/useCurrentUser";
 import { useBranches, type BranchItem } from "@/hooks/queries/useBranches";
@@ -437,6 +438,7 @@ function POSRegisterPage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Select your branch, warehouse and opening cash float to start selling.
               </p>
+              <PageGuideButton id="pos" className="-ml-3 mt-2" />
             </div>
 
             <form
@@ -593,6 +595,7 @@ function POSRegisterPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
+            <PageGuideButton id="pos" />
             {activeSession.status === "OPEN" ? (
               <Button
                 variant="ghost"
