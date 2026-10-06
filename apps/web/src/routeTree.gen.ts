@@ -39,6 +39,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as GoodsReceiptsRouteImport } from './routes/goods-receipts'
 import { Route as GradientBlurDemoRouteImport } from './routes/gradient-blur-demo'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as JournalEntriesRouteImport } from './routes/journal-entries'
 import { Route as LandedCostsRouteImport } from './routes/landed-costs'
@@ -239,6 +240,11 @@ const GradientBlurDemoRoute = GradientBlurDemoRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InventoryRoute = InventoryRouteImport.update({
@@ -528,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/goods-receipts': typeof GoodsReceiptsRoute
   '/gradient-blur-demo': typeof GradientBlurDemoRoute
   '/help': typeof HelpRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/inventory': typeof InventoryRoute
   '/journal-entries': typeof JournalEntriesRoute
   '/landed-costs': typeof LandedCostsRoute
@@ -611,6 +618,7 @@ export interface FileRoutesByTo {
   '/goods-receipts': typeof GoodsReceiptsRoute
   '/gradient-blur-demo': typeof GradientBlurDemoRoute
   '/help': typeof HelpRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/inventory': typeof InventoryRoute
   '/journal-entries': typeof JournalEntriesRoute
   '/landed-costs': typeof LandedCostsRoute
@@ -695,6 +703,7 @@ export interface FileRoutesById {
   '/goods-receipts': typeof GoodsReceiptsRoute
   '/gradient-blur-demo': typeof GradientBlurDemoRoute
   '/help': typeof HelpRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/inventory': typeof InventoryRoute
   '/journal-entries': typeof JournalEntriesRoute
   '/landed-costs': typeof LandedCostsRoute
@@ -780,6 +789,7 @@ export interface FileRouteTypes {
     | '/goods-receipts'
     | '/gradient-blur-demo'
     | '/help'
+    | '/how-it-works'
     | '/inventory'
     | '/journal-entries'
     | '/landed-costs'
@@ -863,6 +873,7 @@ export interface FileRouteTypes {
     | '/goods-receipts'
     | '/gradient-blur-demo'
     | '/help'
+    | '/how-it-works'
     | '/inventory'
     | '/journal-entries'
     | '/landed-costs'
@@ -946,6 +957,7 @@ export interface FileRouteTypes {
     | '/goods-receipts'
     | '/gradient-blur-demo'
     | '/help'
+    | '/how-it-works'
     | '/inventory'
     | '/journal-entries'
     | '/landed-costs'
@@ -1030,6 +1042,7 @@ export interface RootRouteChildren {
   GoodsReceiptsRoute: typeof GoodsReceiptsRoute
   GradientBlurDemoRoute: typeof GradientBlurDemoRoute
   HelpRoute: typeof HelpRoute
+  HowItWorksRoute: typeof HowItWorksRoute
   InventoryRoute: typeof InventoryRoute
   JournalEntriesRoute: typeof JournalEntriesRoute
   LandedCostsRoute: typeof LandedCostsRoute
@@ -1293,6 +1306,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventory': {
@@ -1686,6 +1706,7 @@ const rootRouteChildren: RootRouteChildren = {
   GoodsReceiptsRoute: GoodsReceiptsRoute,
   GradientBlurDemoRoute: GradientBlurDemoRoute,
   HelpRoute: HelpRoute,
+  HowItWorksRoute: HowItWorksRoute,
   InventoryRoute: InventoryRoute,
   JournalEntriesRoute: JournalEntriesRoute,
   LandedCostsRoute: LandedCostsRoute,

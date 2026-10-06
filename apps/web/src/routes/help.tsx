@@ -1,17 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, LifeBuoy, MessageSquare } from "lucide-react";
+import { motion } from "motion/react";
+import { ArrowRight, Compass, ListChecks, Workflow } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/foundation/page-header";
 import { Section } from "@/components/foundation/stat-card";
-import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useOnboarding } from "@/lib/onboarding";
+import { staggerContainer, staggerItem } from "@/lib/motion";
 
-const description = "Guides, FAQs and support entry points for the ValGrow foundation workspace.";
+const description = "Learn how ValGrow works, replay the tour, and find answers to common questions.";
 
 export const Route = createFileRoute("/help")({
   head: () => ({
@@ -25,54 +27,95 @@ export const Route = createFileRoute("/help")({
   component: HelpPage,
 });
 
-const faqs = [
+const faqs: [string, string][] = [
   [
-    "What is included in the foundation?",
-    "Reusable layouts, navigation, settings shells and shared UI components.",
+    "Where should I start?",
+    "Open the Overview and follow the getting-started checklist: add a branch, a warehouse, your products and a customer, then open the register and make your first sale.",
   ],
   [
-    "Where are the business modules?",
-    "POS, Inventory, CRM, Accounting, HR and Analytics appear as coming soon in the sidebar.",
+    "Do I need to update stock by hand?",
+    "No. Receiving goods adds stock and every POS sale removes it. Use Inventory → Adjust only for corrections after a stock-take or damage.",
   ],
   [
-    "Is any data real?",
-    "No. Every page uses placeholder content to demonstrate layout and navigation.",
+    "Where do I see how the business is doing?",
+    "The Overview shows today's numbers. Reports has sales, customer and stock-movement reports you can filter and export to Excel.",
+  ],
+  [
+    "What does each page do?",
+    "Most main pages have a “How this works” button next to the page title. It explains what the page is for and where it fits in the business flow.",
   ],
 ];
 
 function HelpPage() {
+  const { startTour, restoreChecklist, state } = useOnboarding();
+
+  const cards = [
+    {
+      icon: Compass,
+      title: "Take the product tour",
+      body: "A 2-minute walkthrough of the menu and the main parts of the app.",
+      action: (
+        <button type="button" onClick={startTour}>
+          Start tour
+        </button>
+      ),
+    },
+    {
+      icon: Workflow,
+      title: "How ValGrow works",
+      body: "See how buying, stock, selling and reports connect — step by step.",
+      action: <Link to="/how-it-works">Open guide</Link>,
+    },
+    {
+      icon: ListChecks,
+      title: "Getting-started checklist",
+      body: state.checklistDismissed
+        ? "You hid the setup checklist. Bring it back to your Overview."
+        : "Six quick setup steps, tracked on your Overview.",
+      action: (
+        <Link to="/" onClick={restoreChecklist}>
+          {state.checklistDismissed ? "Show on Overview" : "Go to Overview"}
+        </Link>
+      ),
+    },
+  ];
+
   return (
     <AppShell>
       <PageHeader eyebrow="Support" title="Help & Support" description={description} />
-      <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          { icon: BookOpen, title: "Documentation", body: "Foundation conventions and tokens." },
-          { icon: MessageSquare, title: "Ask the team", body: "Placeholder support channel." },
-          { icon: LifeBuoy, title: "Report an issue", body: "Track foundation feedback." },
-        ].map((c) => (
-          <div key={c.title} className="panel p-5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-              <c.icon className="h-4 w-4" />
-            </span>
-            <p className="mt-3 font-semibold">{c.title}</p>
-            <p className="text-sm text-muted-foreground">{c.body}</p>
-          </div>
-        ))}
-      </div>
-      <Section
-        title="FAQ"
-        description="Common questions about the foundation."
-        actions={
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/">Component library</Link>
-          </Button>
-        }
+      <motion.div
+        variants={staggerContainer(0.06)}
+        initial="hidden"
+        animate="show"
+        className="grid gap-4 md:grid-cols-3"
       >
+        {cards.map((c) => (
+          <motion.div
+            key={c.title}
+            variants={staggerItem}
+            className="panel group flex flex-col p-5 transition-shadow hover:shadow-md"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-soft text-primary">
+              <c.icon className="h-5 w-5" />
+            </span>
+            <p className="mt-4 text-sm font-semibold">{c.title}</p>
+            <p className="mt-1 flex-1 text-[13px] text-muted-foreground">{c.body}</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-primary [&>a]:hover:underline [&>button]:hover:underline">
+              {c.action}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <Section title="Frequently asked questions" description="Quick answers for your first days with ValGrow.">
         <Accordion type="single" collapsible>
           {faqs.map(([q, a]) => (
-            <AccordionItem key={q} value={q!}>
+            <AccordionItem key={q} value={q}>
               <AccordionTrigger className="text-sm">{q}</AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground">{a}</AccordionContent>
+              <AccordionContent className="text-[13px] leading-relaxed text-muted-foreground">
+                {a}
+              </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>

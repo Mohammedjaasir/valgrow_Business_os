@@ -41,6 +41,7 @@ import {
   ShoppingBag,
   PackageCheck,
   CreditCard,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
@@ -62,6 +63,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Overview", url: "/", icon: LayoutDashboard },
       { title: "Global Search", url: "/search", icon: Search },
+      { title: "How it works", url: "/how-it-works", icon: Workflow },
     ],
   },
   {
