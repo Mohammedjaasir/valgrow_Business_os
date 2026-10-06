@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ListPage, StatusBadge, type ListRow } from "@/components/foundation/list-page";
+import {
+  CodeCell,
+  ListPage,
+  NameCell,
+  NumberCell,
+  StatusBadge,
+  type ListRow,
+} from "@/components/foundation/list-page";
 import type { Column } from "@/components/foundation/data-table";
 import {
   useCustomers,
@@ -154,12 +161,24 @@ function CustomersPage() {
   };
 
   const columns: Column<ListRow>[] = [
-    { key: "customerCode", header: "Customer Code" },
-    { key: "name", header: "Customer Name" },
-    { key: "email", header: "Email" },
+    {
+      key: "name",
+      header: "Customer",
+      render: (r) => <NameCell value={String(r["name"] ?? "")} sub={String(r["email"] ?? "")} />,
+    },
+    {
+      key: "customerCode",
+      header: "Code",
+      render: (r) => <CodeCell value={String(r["customerCode"] ?? "")} />,
+    },
     { key: "phone", header: "Phone" },
     { key: "currency", header: "Currency" },
-    { key: "creditLimit", header: "Credit Limit" },
+    {
+      key: "creditLimit",
+      header: "Credit limit",
+      className: "text-right",
+      render: (r) => <NumberCell value={String(r["creditLimit"] ?? "")} />,
+    },
     { key: "paymentTerms", header: "Terms" },
     {
       key: "status",
@@ -495,7 +514,7 @@ function Customer360Dialog({ customer, onClose }: { customer: CustomerItem; onCl
                   </div>
                   <div className="p-3 rounded-md border border-border bg-muted/20">
                     <p className="text-muted-foreground">Won Opportunities Value</p>
-                    <p className="text-base font-bold text-emerald-600">
+                    <p className="text-base font-bold text-success">
                       ₹{c360.metrics.wonOpportunitiesValue.toLocaleString("en-IN")}
                     </p>
                   </div>
@@ -522,7 +541,7 @@ function Customer360Dialog({ customer, onClose }: { customer: CustomerItem; onCl
                         <div>
                           <p className="font-semibold text-foreground">
                             {c.name}{" "}
-                            {c.isPrimary && <span className="text-amber-600">(Primary)</span>}
+                            {c.isPrimary && <span className="text-warning">(Primary)</span>}
                           </p>
                           <p className="text-muted-foreground">{c.role || "Role unassigned"}</p>
                         </div>

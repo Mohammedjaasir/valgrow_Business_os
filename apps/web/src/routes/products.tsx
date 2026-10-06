@@ -1,6 +1,14 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ListPage, StatusBadge, type ListRow } from "@/components/foundation/list-page";
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  CodeCell,
+  ListPage,
+  NameCell,
+  NumberCell,
+  StatusBadge,
+  type ListRow,
+} from "@/components/foundation/list-page";
+import { ModuleTabs } from "@/components/foundation/module-tabs";
 import type { Column } from "@/components/foundation/data-table";
 import {
   useProducts,
@@ -172,12 +180,21 @@ function ProductsPage() {
   };
 
   const columns: Column<ListRow>[] = [
-    { key: "name", header: "Product" },
-    { key: "sku", header: "SKU" },
+    { key: "name", header: "Product", render: (r) => <NameCell value={String(r["name"] ?? "")} /> },
+    { key: "sku", header: "SKU", render: (r) => <CodeCell value={String(r["sku"] ?? "")} /> },
     { key: "category", header: "Category" },
     { key: "brand", header: "Brand" },
-    { key: "type", header: "Type" },
-    { key: "price", header: "Cost / Retail Price" },
+    {
+      key: "type",
+      header: "Type",
+      render: (r) => <span className="text-xs text-muted-foreground">{String(r["type"] ?? "")}</span>,
+    },
+    {
+      key: "price",
+      header: "Cost / Retail Price",
+      className: "text-right",
+      render: (r) => <NumberCell value={String(r["price"] ?? "")} />,
+    },
     {
       key: "status",
       header: "Status",
@@ -266,22 +283,13 @@ function ProductsPage() {
         columns={columns}
         rows={rows}
       >
-        <div className="flex items-center gap-2 border-b border-border pb-2.5 mb-4">
-          <Link
-            to="/inventory"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-          >
-            <Boxes className="h-3.5 w-3.5" />
-            Live Stock Levels
-          </Link>
-          <Link
-            to="/products"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground shadow-2xs"
-          >
-            <Package className="h-3.5 w-3.5" />
-            Product Catalog & Master Data
-          </Link>
-        </div>
+        <ModuleTabs
+          id="catalog"
+          tabs={[
+            { to: "/inventory", label: "Live stock levels", icon: Boxes },
+            { to: "/products", label: "Product catalog", icon: Package },
+          ]}
+        />
       </ListPage>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

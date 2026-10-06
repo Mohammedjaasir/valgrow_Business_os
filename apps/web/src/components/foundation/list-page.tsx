@@ -44,6 +44,59 @@ export function StatusBadge({ value }: { value: string }) {
   );
 }
 
+/** Name cell with an initial avatar — for people, customers and products. */
+export function NameCell({ value, sub }: { value: string; sub?: string }) {
+  const initials = value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join("");
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary text-[11px] font-semibold text-muted-foreground">
+        {initials || "—"}
+      </span>
+      <div className="min-w-0">
+        <div className="truncate font-medium text-foreground">{value}</div>
+        {sub ? <div className="truncate text-xs text-muted-foreground">{sub}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+/** Monospace identifier cell (SKU, codes, document numbers). */
+export function CodeCell({ value }: { value: string }) {
+  return <span className="font-mono text-xs text-muted-foreground">{value || "—"}</span>;
+}
+
+/** Right-aligned tabular number; dims zero values. */
+export function NumberCell({ value, tone }: { value: string; tone?: "danger" | "warning" }) {
+  const numeric = Number(value.replace(/[^\d.-]/g, ""));
+  const zero = value.trim() !== "" && Number.isFinite(numeric) && numeric === 0;
+  return (
+    <span
+      className={
+        tone === "danger"
+          ? "tabular font-medium text-destructive"
+          : tone === "warning"
+            ? "tabular font-medium text-warning"
+            : zero
+              ? "tabular text-muted-foreground"
+              : "tabular font-medium text-foreground"
+      }
+    >
+      {value}
+    </span>
+  );
+}
+
+const STAT_COLS: Record<number, string> = {
+  1: "sm:grid-cols-1",
+  2: "sm:grid-cols-2",
+  3: "sm:grid-cols-3",
+};
+
 export function ListPage({
   title,
   description,
@@ -90,7 +143,7 @@ export function ListPage({
           variants={staggerContainer(0.05)}
           initial="hidden"
           animate="show"
-          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+          className={STAT_COLS[stats.length] ? `grid gap-4 ${STAT_COLS[stats.length]}` : "grid gap-4 sm:grid-cols-2 xl:grid-cols-4"}
         >
           {stats.map((s, i) => (
             <motion.div key={s.label} variants={staggerItem}>

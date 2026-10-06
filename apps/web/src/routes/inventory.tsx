@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ListPage, type ListRow } from "@/components/foundation/list-page";
+import { createFileRoute } from "@tanstack/react-router";
+import { ListPage, NameCell, NumberCell, type ListRow } from "@/components/foundation/list-page";
+import { ModuleTabs } from "@/components/foundation/module-tabs";
 import type { Column } from "@/components/foundation/data-table";
 import { useInventoryStock, type StockItem } from "@/hooks/queries/useInventoryStock";
 import { useProducts, type ProductItem } from "@/hooks/queries/useProducts";
@@ -256,13 +257,48 @@ function InventoryStockPage() {
   ];
 
   const columns: Column<ListRow>[] = [
-    { key: "product", header: "Product" },
-    { key: "variant", header: "Variant" },
-    { key: "facility", header: "Warehouse & Location" },
-    { key: "batch", header: "Batch No." },
-    { key: "onHand", header: "On Hand Qty" },
-    { key: "reserved", header: "Reserved Qty" },
-    { key: "available", header: "Available Stock" },
+    {
+      key: "product",
+      header: "Product",
+      render: (r) => <NameCell value={String(r["product"] ?? "")} sub={String(r["variant"] ?? "")} />,
+    },
+    {
+      key: "facility",
+      header: "Warehouse & Location",
+      render: (r) => <span className="text-muted-foreground">{String(r["facility"] ?? "")}</span>,
+    },
+    {
+      key: "batch",
+      header: "Batch No.",
+      render: (r) => <span className="font-mono text-xs text-muted-foreground">{String(r["batch"] ?? "")}</span>,
+    },
+    {
+      key: "onHand",
+      header: "On hand",
+      className: "text-right",
+      render: (r) => <NumberCell value={String(r["onHand"] ?? "")} />,
+    },
+    {
+      key: "reserved",
+      header: "Reserved",
+      className: "text-right",
+      render: (r) => <NumberCell value={String(r["reserved"] ?? "")} />,
+    },
+    {
+      key: "available",
+      header: "Available",
+      className: "text-right",
+      render: (r) => {
+        const value = String(r["available"] ?? "");
+        const qty = Number(value.replace(/[^\d.-]/g, ""));
+        return (
+          <NumberCell
+            value={value}
+            {...(Number.isFinite(qty) && qty <= 0 ? { tone: "danger" as const } : {})}
+          />
+        );
+      },
+    },
     {
       key: "actions",
       header: "Actions",
@@ -298,22 +334,13 @@ function InventoryStockPage() {
         columns={columns}
         rows={rows}
       >
-        <div className="flex items-center gap-2 border-b border-border pb-2.5 mb-4">
-          <Link
-            to="/inventory"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground shadow-2xs"
-          >
-            <Boxes className="h-3.5 w-3.5" />
-            Live Stock Levels
-          </Link>
-          <Link
-            to="/products"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-          >
-            <Package className="h-3.5 w-3.5" />
-            Product Catalog & Master Data
-          </Link>
-        </div>
+        <ModuleTabs
+          id="catalog"
+          tabs={[
+            { to: "/inventory", label: "Live stock levels", icon: Boxes },
+            { to: "/products", label: "Product catalog", icon: Package },
+          ]}
+        />
       </ListPage>
 
       {/* Adjust Stock Dialog */}
