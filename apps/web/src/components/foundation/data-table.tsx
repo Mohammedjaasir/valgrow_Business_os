@@ -10,7 +10,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { staggerContainer, staggerItem } from "@/lib/motion";
-import { EmptyState } from "./states";
+import { EmptyState, ErrorState, LoadingSkeleton } from "./states";
 
 export type Column<T> = {
   key: string;
@@ -26,11 +26,17 @@ export function DataTable<T extends Record<string, unknown>>({
   rows,
   toolbar,
   paginate = true,
+  isLoading = false,
+  isError = false,
+  onRetry,
 }: {
   columns: Column<T>[];
   rows: T[];
   toolbar?: ReactNode;
   paginate?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }) {
   return (
     <div className="panel overflow-hidden">
@@ -39,12 +45,21 @@ export function DataTable<T extends Record<string, unknown>>({
           {toolbar}
         </div>
       ) : null}
-      {rows.length === 0 ? (
+      {isLoading && rows.length === 0 ? (
+        <div className="[&>div]:rounded-none [&>div]:border-0 [&>div]:shadow-none">
+          <LoadingSkeleton rows={5} />
+        </div>
+      ) : isError && rows.length === 0 ? (
+        <ErrorState
+          className="m-4"
+          {...(onRetry ? { onRetry } : {})}
+        />
+      ) : rows.length === 0 ? (
         <EmptyState className="rounded-none border-0" />
       ) : (
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="sticky top-0 z-[1]">
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
                 {columns.map((c) => (
                   <TableHead key={c.key} className={c.className}>

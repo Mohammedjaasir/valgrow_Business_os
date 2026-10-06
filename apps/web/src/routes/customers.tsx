@@ -52,7 +52,12 @@ function CustomersPage() {
   const canUpdate = permissions.includes("sales.update");
   const canDelete = permissions.includes("sales.delete");
 
-  const { data: customersData, isLoading } = useCustomers();
+  const {
+    data: customersData,
+    isLoading,
+    isError: isCustomersError,
+    refetch: refetchCustomers,
+  } = useCustomers();
   const createCustomerMutation = useCreateCustomer();
   const updateCustomerMutation = useUpdateCustomer();
   const deleteCustomerMutation = useDeleteCustomer();
@@ -270,6 +275,9 @@ function CustomersPage() {
         stats={stats}
         columns={columns}
         rows={rows}
+        isLoading={isLoading}
+        isError={isCustomersError}
+        onRetry={() => refetchCustomers()}
       />
 
       {/* Create / Edit Customer Dialog */}

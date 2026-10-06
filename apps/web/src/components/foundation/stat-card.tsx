@@ -107,12 +107,14 @@ export function StatCard({
           </span>
         ) : null}
       </div>
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <p className="tabular truncate font-display text-2xl font-semibold tracking-tight text-foreground">
-          <AnimatedValue value={value} />
-        </p>
-        {trend && trend.length > 1 ? <Sparkline points={trend} /> : null}
-      </div>
+      <p className="tabular mt-2 break-words font-display text-2xl font-semibold leading-tight tracking-tight text-foreground">
+        <AnimatedValue value={value} />
+      </p>
+      {trend && trend.length > 1 ? (
+        <div className="mt-2">
+          <Sparkline points={trend} />
+        </div>
+      ) : null}
       {delta || hint ? (
         <div className="mt-2 flex items-center gap-2 text-xs">
           {delta ? (

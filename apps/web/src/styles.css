@@ -302,7 +302,8 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-drift-a,
   .animate-hero-drift-b,
-  .shimmer {
+  .shimmer,
+  .animate-pulse {
     animation: none;
   }
 

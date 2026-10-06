@@ -1,5 +1,5 @@
 import { createElement, useEffect, useRef, useState, type ReactNode } from "react";
-import { animate, motion, type Transition, type Variants } from "motion/react";
+import { animate, motion, useReducedMotion, type Transition, type Variants } from "motion/react";
 import { useRouterState } from "@tanstack/react-router";
 
 export const easeOut = [0.22, 1, 0.36, 1] as const;
@@ -36,11 +36,18 @@ export function PageTransition({ children }: { children: ReactNode }) {
 
 /** Animates from the previous value to `value`; returns the in-flight number. */
 export function useCountUp(value: number, durationMs = 600) {
+  const reduceMotion = useReducedMotion();
   const [display, setDisplay] = useState(0);
   const from = useRef(0);
 
   useEffect(() => {
     if (!Number.isFinite(value)) return;
+    // The standalone animate() ignores <MotionConfig>, so honour the OS setting here.
+    if (reduceMotion) {
+      from.current = value;
+      setDisplay(value);
+      return;
+    }
     const controls = animate(from.current, value, {
       duration: durationMs / 1000,
       ease: easeOut,
@@ -48,7 +55,7 @@ export function useCountUp(value: number, durationMs = 600) {
     });
     from.current = value;
     return () => controls.stop();
-  }, [value, durationMs]);
+  }, [value, durationMs, reduceMotion]);
 
   return display;
 }

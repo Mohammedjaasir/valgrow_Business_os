@@ -107,6 +107,9 @@ export function ListPage({
   columns,
   rows,
   children,
+  isLoading = false,
+  isError = false,
+  onRetry,
 }: {
   title: string;
   description: string;
@@ -117,6 +120,9 @@ export function ListPage({
   columns: Column<ListRow>[];
   rows: ListRow[];
   children?: ReactNode;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }) {
   return (
     <AppShell>
@@ -164,6 +170,9 @@ export function ListPage({
       <DataTable
         columns={columns}
         rows={rows}
+        isLoading={isLoading}
+        isError={isError}
+        {...(onRetry ? { onRetry } : {})}
         toolbar={
           <>
             <div className="relative w-full sm:w-72">

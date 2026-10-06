@@ -737,7 +737,7 @@ function POSRegisterPage() {
                             {prod.sku}
                           </div>
                         </div>
-                        <div className="mt-3 flex items-end justify-between gap-2">
+                        <div className="mt-3 flex flex-wrap items-end justify-between gap-x-2 gap-y-1">
                           <span className="tabular text-sm font-semibold text-foreground">
                             {money(prod.retailPrice || prod.costPrice)}
                           </span>
@@ -860,7 +860,7 @@ function POSRegisterPage() {
                         </button>
                       </div>
 
-                      <div className="tabular w-20 text-right text-[13px] font-semibold">
+                      <div className="tabular min-w-20 shrink-0 text-right text-[13px] font-semibold">
                         {money(item.totalAmount)}
                       </div>
 

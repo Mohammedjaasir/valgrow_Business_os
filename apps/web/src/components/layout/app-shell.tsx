@@ -48,12 +48,18 @@ import { setActiveOrgId } from "@/lib/api-client";
 
 const COMPACT_KEY = "valgrow-sidebar-compact";
 
+// Each route renders its own AppShell, so cache the preference across remounts
+// to avoid replaying the width transition on every navigation.
+let cachedCompact: boolean | null = null;
+
 function readCompact() {
+  if (cachedCompact !== null) return cachedCompact;
   try {
-    return localStorage.getItem(COMPACT_KEY) === "1";
+    cachedCompact = localStorage.getItem(COMPACT_KEY) === "1";
   } catch {
-    return false;
+    cachedCompact = false;
   }
+  return cachedCompact;
 }
 
 function isActivePath(pathname: string, url: string) {
@@ -170,6 +176,7 @@ function SidebarNav({
                     to={item.url}
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
+                    aria-label={compact ? item.title : undefined}
                     className={cn(
                       "group relative flex h-8 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors",
                       compact && "justify-center px-0",
@@ -415,7 +422,7 @@ export function AppShell({
   rightPanel?: ReactNode;
   fullBleed?: boolean;
 }) {
-  const [compact, setCompact] = useState(false);
+  const [compact, setCompact] = useState(() => cachedCompact ?? false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -426,6 +433,7 @@ export function AppShell({
   const toggleCompact = () => {
     setCompact((c) => {
       const next = !c;
+      cachedCompact = next;
       try {
         localStorage.setItem(COMPACT_KEY, next ? "1" : "0");
       } catch {

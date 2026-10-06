@@ -50,7 +50,12 @@ export const Route = createFileRoute("/inventory")({
 function InventoryStockPage() {
   const [page] = useState(1);
   const [search] = useState("");
-  const { data: stockData } = useInventoryStock({ page, search });
+  const {
+    data: stockData,
+    isLoading: isStockLoading,
+    isError: isStockError,
+    refetch: refetchStock,
+  } = useInventoryStock({ page, search });
   const { data: productsData } = useProducts({ limit: 100 });
   const { data: warehouses = [] } = useWarehouses();
 
@@ -333,6 +338,9 @@ function InventoryStockPage() {
         stats={stats}
         columns={columns}
         rows={rows}
+        isLoading={isStockLoading}
+        isError={isStockError}
+        onRetry={() => refetchStock()}
       >
         <ModuleTabs
           id="catalog"

@@ -42,8 +42,9 @@ const inr = (n: number, decimals = 0) =>
     maximumFractionDigits: decimals,
   })}`;
 
+/** Local calendar date as YYYY-MM-DD (toISOString would shift to UTC). */
 function isoDay(d: Date) {
-  return d.toISOString().slice(0, 10);
+  return d.toLocaleDateString("en-CA");
 }
 
 /** Shared 30-day sales window for the chart and recent-sales card. */
@@ -307,7 +308,7 @@ export function RevenueChartCard({ className }: { className?: string }) {
 }
 
 export function AttentionCard({ className }: { className?: string }) {
-  const { data, isLoading } = useDashboardOverview();
+  const { data, isLoading, isError, refetch } = useDashboardOverview();
 
   const items = [
     {
@@ -332,7 +333,7 @@ export function AttentionCard({ className }: { className?: string }) {
       tone: "info" as const,
     },
   ];
-  const allClear = !isLoading && items.every((i) => i.count === 0);
+  const allClear = !isLoading && !isError && items.every((i) => i.count === 0);
 
   return (
     <section className={cn("panel flex flex-col p-5", className)}>
@@ -342,6 +343,8 @@ export function AttentionCard({ className }: { className?: string }) {
       <div className="mt-4 flex-1 space-y-1">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
+        ) : isError ? (
+          <ErrorState className="h-full py-6" onRetry={() => refetch()} />
         ) : allClear ? (
           <div className="flex h-full flex-col items-center justify-center gap-2 py-8 text-center">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-success-soft text-success">

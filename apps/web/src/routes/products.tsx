@@ -89,7 +89,12 @@ const initialFormState: ProductFormState = {
 function ProductsPage() {
   const [page] = useState(1);
   const [search] = useState("");
-  const { data: productsData } = useProducts({ page, search });
+  const {
+    data: productsData,
+    isLoading: isProductsLoading,
+    isError: isProductsError,
+    refetch: refetchProducts,
+  } = useProducts({ page, search });
 
   const { data: categories = [] } = useCategories();
   const { data: brands = [] } = useBrands();
@@ -282,6 +287,9 @@ function ProductsPage() {
         stats={stats}
         columns={columns}
         rows={rows}
+        isLoading={isProductsLoading}
+        isError={isProductsError}
+        onRetry={() => refetchProducts()}
       >
         <ModuleTabs
           id="catalog"
