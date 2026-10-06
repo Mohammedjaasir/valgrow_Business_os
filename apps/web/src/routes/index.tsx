@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/app-shell";
+import { GettingStarted } from "@/components/onboarding/getting-started";
 import {
   AttentionCard,
   KpiGrid,
@@ -27,6 +28,7 @@ function Overview() {
   return (
     <AppShell>
       <OverviewGreeting />
+      <GettingStarted />
       <KpiGrid />
       <div className="grid gap-6 xl:grid-cols-3">
         <RevenueChartCard className="xl:col-span-2" />
