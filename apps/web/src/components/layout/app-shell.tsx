@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import {
   Bell,
+  Compass,
   Building2,
   Check,
   ChevronsUpDown,
@@ -38,6 +39,8 @@ import { CommandPalette } from "@/components/layout/command-palette";
 import { useTheme } from "@/components/theme-provider";
 import { branches, navGroups, notifications, organizations } from "@/lib/nav";
 import { PageTransition } from "@/lib/motion";
+import { OnboardingProvider, useOnboarding } from "@/lib/onboarding";
+import { OnboardingOverlays } from "@/components/onboarding/overlays";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/queries/useCurrentUser";
 import { useOrganizations } from "@/hooks/queries/useOrganizations";
@@ -177,6 +180,7 @@ function SidebarNav({
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     aria-label={compact ? item.title : undefined}
+                    data-tour={`nav-${item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                     className={cn(
                       "group relative flex h-8 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors",
                       compact && "justify-center px-0",
@@ -332,6 +336,7 @@ function ThemeSwitcher() {
 
 function UserMenu() {
   const { data: userMe } = useCurrentUser();
+  const { startTour } = useOnboarding();
   const logoutMutation = useLogoutMutation();
 
   const fullName =
@@ -383,6 +388,9 @@ function UserMenu() {
             <Settings /> Preferences
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={startTour} className="cursor-pointer">
+          <Compass /> Product tour
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
           <LogOut /> Sign out
@@ -398,6 +406,7 @@ function SearchTrigger({ onOpen }: { onOpen: () => void }) {
       <button
         type="button"
         onClick={onOpen}
+        data-tour="search"
         className="hidden h-8 w-64 items-center gap-2 rounded-md border border-input bg-surface px-2.5 text-[13px] text-muted-foreground shadow-xs transition-colors hover:border-foreground/20 hover:text-foreground md:flex"
       >
         <Search className="h-3.5 w-3.5" />
@@ -413,16 +422,25 @@ function SearchTrigger({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-export function AppShell({
-  children,
-  rightPanel,
-  fullBleed = false,
-}: {
+type AppShellProps = {
   children: ReactNode;
   rightPanel?: ReactNode;
   fullBleed?: boolean;
-}) {
-  const [compact, setCompact] = useState(() => cachedCompact ?? false);
+};
+
+export function AppShell(props: AppShellProps) {
+  return (
+    <OnboardingProvider overlays={<OnboardingOverlays />}>
+      <AppShellInner {...props} />
+    </OnboardingProvider>
+  );
+}
+
+function AppShellInner({ children, rightPanel, fullBleed = false }: AppShellProps) {
+  const { tourOpen } = useOnboarding();
+  const [compactPref, setCompact] = useState(() => cachedCompact ?? false);
+  // The tour points at labelled menu items, so show the full sidebar while it runs.
+  const compact = compactPref && !tourOpen;
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -446,6 +464,7 @@ export function AppShell({
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <aside
+        data-tour="sidebar"
         className={cn(
           "hidden h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-out lg:flex",
           compact ? "w-[60px]" : "w-[248px]",
@@ -469,7 +488,7 @@ export function AppShell({
             size={compact ? "icon" : "sm"}
             className={cn(!compact && "flex-1 justify-start")}
           >
-            <Link to="/help" aria-label="Help and support">
+            <Link to="/help" aria-label="Help and support" data-tour="help">
               <CircleHelp />
               {!compact ? "Help & support" : null}
             </Link>
