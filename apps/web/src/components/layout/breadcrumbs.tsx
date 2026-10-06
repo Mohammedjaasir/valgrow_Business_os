@@ -1,7 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
+const ACRONYMS: Record<string, string> = { pos: "POS", crm: "CRM" };
+
 function labelize(segment: string) {
+  if (ACRONYMS[segment]) return ACRONYMS[segment];
   return segment
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
