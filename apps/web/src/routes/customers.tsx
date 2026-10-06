@@ -65,7 +65,7 @@ function CustomersPage() {
   const [state, setState] = useState("");
   const [country, setCountry] = useState("India");
   const [postalCode, setPostalCode] = useState("");
-  const [taxNumber, setTaxNumber] = useState("");
+  const [taxIdNumber, setTaxIdNumber] = useState("");
   const [currency, setCurrency] = useState("INR");
   const [creditLimit, setCreditLimit] = useState<number>(0);
   const [paymentTerms, setPaymentTerms] = useState("NET30");
@@ -80,7 +80,7 @@ function CustomersPage() {
     setState("");
     setCountry("India");
     setPostalCode("");
-    setTaxNumber("");
+    setTaxIdNumber("");
     setCurrency("INR");
     setCreditLimit(0);
     setPaymentTerms("NET30");
@@ -98,7 +98,7 @@ function CustomersPage() {
     setState(customer.state || "");
     setCountry(customer.country || "India");
     setPostalCode(customer.postalCode || "");
-    setTaxNumber(customer.taxNumber || "");
+    setTaxIdNumber(customer.taxIdNumber || customer.taxNumber || "");
     setCurrency(customer.currency || "INR");
     setCreditLimit(customer.creditLimit || 0);
     setPaymentTerms(customer.paymentTerms || "NET30");
@@ -122,7 +122,7 @@ function CustomersPage() {
             state: state || null,
             country: country || null,
             postalCode: postalCode || null,
-            taxNumber: taxNumber || null,
+            taxIdNumber: taxIdNumber || null,
             currency,
             creditLimit: Number(creditLimit),
             paymentTerms,
@@ -139,7 +139,7 @@ function CustomersPage() {
           state: state || undefined,
           country: country || undefined,
           postalCode: postalCode || undefined,
-          taxNumber: taxNumber || undefined,
+          taxIdNumber: taxIdNumber || undefined,
           currency,
           creditLimit: Number(creditLimit),
           paymentTerms,
@@ -242,25 +242,15 @@ function CustomersPage() {
         title={title}
         description={description}
         eyebrow="Sales & Accounts"
-        actionLabel={canCreate ? "New customer" : ""}
+        actionLabel="New customer"
+        onAction={() => {
+          setEditingCustomer(null);
+          resetForm();
+          setIsAddOpen(true);
+        }}
         stats={stats}
         columns={columns}
         rows={rows}
-        children={
-          canCreate ? (
-            <div className="mb-4 flex justify-end">
-              <Button
-                onClick={() => {
-                  setEditingCustomer(null);
-                  resetForm();
-                  setIsAddOpen(true);
-                }}
-              >
-                <Plus className="mr-2 h-4 w-4" /> New Customer
-              </Button>
-            </div>
-          ) : undefined
-        }
       />
 
       {/* Create / Edit Customer Dialog */}
@@ -346,11 +336,11 @@ function CustomersPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="taxNumber">Tax ID / GSTIN</Label>
+              <Label htmlFor="taxIdNumber">Tax ID / GSTIN</Label>
               <Input
-                id="taxNumber"
-                value={taxNumber}
-                onChange={(e) => setTaxNumber(e.target.value)}
+                id="taxIdNumber"
+                value={taxIdNumber}
+                onChange={(e) => setTaxIdNumber(e.target.value)}
                 placeholder="29ABCDE1234F1Z5"
               />
             </div>

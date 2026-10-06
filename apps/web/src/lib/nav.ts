@@ -73,7 +73,6 @@ export const navGroups: NavGroup[] = [
       { title: "Purchasing", url: "/purchasing", icon: ShoppingCart },
       { title: "Customers", url: "/customers", icon: Contact },
       { title: "Reports", url: "/reports", icon: BarChart3 },
-      { title: "Expenses", url: "/supplier-invoices", icon: CreditCard },
     ],
   },
   {

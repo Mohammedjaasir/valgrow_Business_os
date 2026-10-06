@@ -13,7 +13,8 @@ export interface CustomerItem {
   state: string | null;
   country: string | null;
   postalCode: string | null;
-  taxNumber: string | null;
+  taxIdNumber?: string | null;
+  taxNumber?: string | null;
   currency: string;
   creditLimit: number;
   paymentTerms: string | null;
@@ -51,6 +52,7 @@ export function useCreateCustomer() {
       state?: string | undefined;
       country?: string | undefined;
       postalCode?: string | undefined;
+      taxIdNumber?: string | undefined;
       taxNumber?: string | undefined;
       currency?: string | undefined;
       creditLimit?: number | undefined;
