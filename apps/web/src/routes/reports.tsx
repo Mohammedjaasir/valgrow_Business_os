@@ -1,8 +1,24 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { motion } from "motion/react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/foundation/page-header";
 import { StatCard } from "@/components/foundation/stat-card";
+import { StatusBadge } from "@/components/foundation/list-page";
+import { EmptyState } from "@/components/foundation/states";
+import { staggerContainer, staggerItem } from "@/lib/motion";
+import type { SalesReportResult } from "@/hooks/queries/useReports";
 import { downloadFile } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -248,16 +264,25 @@ function ReportsPage() {
       />
 
       <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="sales" className="flex items-center gap-2">
+        <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-none border-b bg-transparent p-0">
+          <TabsTrigger value="sales" className="relative flex items-center gap-2 rounded-none bg-transparent px-3 pb-2.5 pt-1.5 text-[13px] text-muted-foreground shadow-none data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">
+            {activeTab === "sales" && (
+              <motion.span layoutId="report-tab" className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
+            )}
             <BarChart3 className="h-4 w-4" />
             Sales Report
           </TabsTrigger>
-          <TabsTrigger value="customers" className="flex items-center gap-2">
+          <TabsTrigger value="customers" className="relative flex items-center gap-2 rounded-none bg-transparent px-3 pb-2.5 pt-1.5 text-[13px] text-muted-foreground shadow-none data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">
+            {activeTab === "customers" && (
+              <motion.span layoutId="report-tab" className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
+            )}
             <Users className="h-4 w-4" />
             Customer Report
           </TabsTrigger>
-          <TabsTrigger value="inventory" className="flex items-center gap-2">
+          <TabsTrigger value="inventory" className="relative flex items-center gap-2 rounded-none bg-transparent px-3 pb-2.5 pt-1.5 text-[13px] text-muted-foreground shadow-none data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">
+            {activeTab === "inventory" && (
+              <motion.span layoutId="report-tab" className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
+            )}
             <Boxes className="h-4 w-4" />
             Stock Movements
           </TabsTrigger>
@@ -268,7 +293,7 @@ function ReportsPage() {
            =================================================================== */}
         <TabsContent value="sales" className="space-y-4">
           {/* Filters Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4 shadow-2xs">
+          <div className="panel flex flex-wrap items-center justify-between gap-3 p-3">
             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">From</Label>
@@ -367,40 +392,42 @@ function ReportsPage() {
           </div>
 
           {/* Stat Cards */}
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
-            <StatCard
+          <motion.div variants={staggerContainer(0.05)} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 lg:grid-cols-5 [&>*]:h-full">
+            <motion.div variants={staggerItem}><StatCard
               label="Total Revenue"
               value={isSalesLoading ? "…" : `₹${(salesReport?.summary.totalSales || 0).toLocaleString("en-IN")}`}
               hint="Persisted completed sales"
               tone="brand"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Orders"
               value={isSalesLoading ? "…" : String(salesReport?.summary.orderCount || 0)}
               hint="Completed transactions"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Tax"
               value={isSalesLoading ? "…" : `₹${(salesReport?.summary.totalTax || 0).toLocaleString("en-IN")}`}
               hint="GST / VAT collected"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Discounts"
               value={isSalesLoading ? "…" : `₹${(salesReport?.summary.totalDiscount || 0).toLocaleString("en-IN")}`}
               hint="Promotions & cart discounts"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Paid"
               value={isSalesLoading ? "…" : `₹${(salesReport?.summary.totalPaid || 0).toLocaleString("en-IN")}`}
               hint="Collected cash & digital payments"
-            />
-          </div>
+            /></motion.div>
+          </motion.div>
+
+          <SalesCharts report={salesReport} isLoading={isSalesLoading} />
 
           {/* Sales Transactions Table */}
-          <div className="rounded-lg border bg-card p-4 shadow-2xs space-y-3">
+          <div className="panel space-y-3 p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm">Persisted Sales Transactions</h3>
-              <Badge variant="outline">{salesReport?.records.length || 0} Records</Badge>
+              <Badge variant="neutral" className="tabular">{salesReport?.records.length || 0} records</Badge>
             </div>
 
             <div className="overflow-x-auto">
@@ -436,7 +463,7 @@ function ReportsPage() {
                   ) : (
                     salesReport.records.map((r) => (
                       <TableRow key={r.id}>
-                        <TableCell className="font-mono font-medium text-xs text-primary">
+                        <TableCell className="font-mono text-xs font-medium text-primary">
                           {r.number}
                         </TableCell>
                         <TableCell className="text-xs">
@@ -444,24 +471,22 @@ function ReportsPage() {
                         </TableCell>
                         <TableCell className="font-medium text-xs">{r.customerName}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">{r.branchName}</TableCell>
-                        <TableCell className="text-right font-mono text-xs">₹{r.subtotal.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-mono text-xs">₹{r.tax.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-mono text-xs text-destructive">
+                        <TableCell className="text-right tabular text-xs">₹{r.subtotal.toFixed(2)}</TableCell>
+                        <TableCell className="text-right tabular text-xs">₹{r.tax.toFixed(2)}</TableCell>
+                        <TableCell className="text-right tabular text-xs text-destructive">
                           -₹{r.discount.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right font-mono font-bold text-xs">
+                        <TableCell className="text-right tabular font-bold text-xs">
                           ₹{r.total.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-emerald-600 dark:text-emerald-400">
+                        <TableCell className="text-right tabular text-xs text-success">
                           ₹{r.paid.toFixed(2)}
                         </TableCell>
                         <TableCell className="text-xs">
-                          <Badge variant="outline">{r.paymentMethods || "CASH"}</Badge>
+                          <Badge variant="neutral">{r.paymentMethods || "CASH"}</Badge>
                         </TableCell>
                         <TableCell className="text-xs">
-                          <Badge variant="outline" className="border-emerald-500 bg-emerald-50 text-emerald-700">
-                            {r.status}
-                          </Badge>
+                          <StatusBadge value={r.status} />
                         </TableCell>
                       </TableRow>
                     ))
@@ -477,7 +502,7 @@ function ReportsPage() {
            =================================================================== */}
         <TabsContent value="customers" className="space-y-4">
           {/* Filters Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4 shadow-2xs">
+          <div className="panel flex flex-wrap items-center justify-between gap-3 p-3">
             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">From</Label>
@@ -543,40 +568,40 @@ function ReportsPage() {
           </div>
 
           {/* Customer Stat Cards */}
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
-            <StatCard
+          <motion.div variants={staggerContainer(0.05)} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 lg:grid-cols-5 [&>*]:h-full">
+            <motion.div variants={staggerItem}><StatCard
               label="Registered Accounts"
               value={isCustLoading ? "…" : String(customerReport?.summary.totalCustomers || 0)}
               hint="Active customer database"
               tone="brand"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Orders Placed"
               value={isCustLoading ? "…" : String(customerReport?.summary.totalOrders || 0)}
               hint="Across POS and Invoices"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Purchases"
               value={isCustLoading ? "…" : `₹${(customerReport?.summary.totalPurchases || 0).toLocaleString("en-IN")}`}
               hint="Gross customer volume"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Paid"
               value={isCustLoading ? "…" : `₹${(customerReport?.summary.totalPaid || 0).toLocaleString("en-IN")}`}
               hint="Collections received"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Outstanding Due"
               value={isCustLoading ? "…" : `₹${(customerReport?.summary.totalOutstanding || 0).toLocaleString("en-IN")}`}
               hint="Pending customer receivables"
-            />
-          </div>
+            /></motion.div>
+          </motion.div>
 
           {/* Customer Activity Table */}
-          <div className="rounded-lg border bg-card p-4 shadow-2xs space-y-3">
+          <div className="panel space-y-3 p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm">Customer Activity & Financial Summary</h3>
-              <Badge variant="outline">{customerReport?.customers.length || 0} Accounts</Badge>
+              <Badge variant="neutral" className="tabular">{customerReport?.customers.length || 0} accounts</Badge>
             </div>
 
             <div className="overflow-x-auto">
@@ -620,22 +645,20 @@ function ReportsPage() {
                         </TableCell>
                         <TableCell className="text-xs">{c.city}</TableCell>
                         <TableCell className="text-center font-semibold text-xs">{c.totalOrders}</TableCell>
-                        <TableCell className="text-right font-mono font-semibold text-xs">
+                        <TableCell className="text-right tabular font-semibold text-xs">
                           ₹{c.totalPurchases.toLocaleString("en-IN")}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs text-emerald-600 dark:text-emerald-400">
+                        <TableCell className="text-right tabular text-xs text-success">
                           ₹{c.totalPaid.toLocaleString("en-IN")}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs font-bold text-amber-600 dark:text-amber-400">
+                        <TableCell className="text-right tabular text-xs font-bold text-warning">
                           ₹{c.outstandingAmount.toLocaleString("en-IN")}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {c.lastPurchaseDate ? new Date(c.lastPurchaseDate).toLocaleDateString("en-IN") : "Never"}
                         </TableCell>
                         <TableCell className="text-xs">
-                          <Badge variant="outline" className="border-emerald-500 bg-emerald-50 text-emerald-700">
-                            {c.status}
-                          </Badge>
+                          <StatusBadge value={c.status} />
                         </TableCell>
                       </TableRow>
                     ))
@@ -651,7 +674,7 @@ function ReportsPage() {
            =================================================================== */}
         <TabsContent value="inventory" className="space-y-4">
           {/* Filters Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4 shadow-2xs">
+          <div className="panel flex flex-wrap items-center justify-between gap-3 p-3">
             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">From</Label>
@@ -761,35 +784,35 @@ function ReportsPage() {
           </div>
 
           {/* Inventory Movement Stat Cards */}
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-            <StatCard
+          <motion.div variants={staggerContainer(0.05)} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 lg:grid-cols-4 [&>*]:h-full">
+            <motion.div variants={staggerItem}><StatCard
               label="Total Movement Records"
               value={isInvLoading ? "…" : String(invReport?.summary.totalMovements || 0)}
               hint="Immutable StockMovement ledger"
               tone="brand"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Inbound Stock"
               value={isInvLoading ? "…" : `+${(invReport?.summary.totalInboundQty || 0).toLocaleString()} Units`}
               hint="Purchases, adjustments & receipts"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Total Outbound Stock"
               value={isInvLoading ? "…" : `-${(invReport?.summary.totalOutboundQty || 0).toLocaleString()} Units`}
               hint="POS Sales, shipments & write-offs"
-            />
-            <StatCard
+            /></motion.div>
+            <motion.div variants={staggerItem}><StatCard
               label="Net Stock Movement"
               value={isInvLoading ? "…" : `${(invReport?.summary.netQtyChange || 0) >= 0 ? "+" : ""}${(invReport?.summary.netQtyChange || 0).toLocaleString()} Units`}
               hint="Net physical inventory shift"
-            />
-          </div>
+            /></motion.div>
+          </motion.div>
 
           {/* Stock Movements Ledger Table */}
-          <div className="rounded-lg border bg-card p-4 shadow-2xs space-y-3">
+          <div className="panel space-y-3 p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm">Persisted StockMovement Audit Ledger</h3>
-              <Badge variant="outline">{invReport?.records.length || 0} Ledger Entries</Badge>
+              <Badge variant="neutral" className="tabular">{invReport?.records.length || 0} entries</Badge>
             </div>
 
             <div className="overflow-x-auto">
@@ -837,28 +860,24 @@ function ReportsPage() {
                         </TableCell>
                         <TableCell className="text-xs">
                           <Badge
-                            variant="outline"
-                            className={
-                              r.isOutbound
-                                ? "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400 font-semibold text-[11px]"
-                                : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold text-[11px]"
-                            }
+                            variant={r.isOutbound ? "destructive-soft" : "success"}
+                            className="text-[11px]"
                           >
                             {r.movementType}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-mono font-bold text-xs">
-                          <span className={r.isOutbound ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}>
+                        <TableCell className="text-right tabular font-bold text-xs">
+                          <span className={r.isOutbound ? "text-destructive" : "text-success"}>
                             {r.quantity > 0 ? `+${r.quantity}` : r.quantity} Units
                           </span>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs">
+                        <TableCell className="text-right tabular text-xs">
                           ₹{r.unitCost.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right font-mono font-semibold text-xs">
+                        <TableCell className="text-right tabular font-semibold text-xs">
                           ₹{r.totalCost.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-xs font-mono text-primary">
+                        <TableCell className="font-mono text-xs text-primary">
                           {r.referenceType}: {r.referenceId}
                         </TableCell>
                         <TableCell className="text-xs">{r.performedBy}</TableCell>
@@ -875,5 +894,94 @@ function ReportsPage() {
         </TabsContent>
       </Tabs>
     </AppShell>
+  );
+}
+
+const inrShort = (v: number) =>
+  v >= 100000 ? `₹${(v / 100000).toFixed(1)}L` : v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`;
+
+function ChartCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+  return (
+    <section className="panel flex flex-col p-5">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <p className="text-[13px] text-muted-foreground">{subtitle}</p>
+      <div className="mt-4 h-56">{children}</div>
+    </section>
+  );
+}
+
+function ChartTip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-md">
+      <p className="font-medium">{label}</p>
+      <p className="tabular mt-0.5 text-muted-foreground">
+        ₹{Number(payload[0]!.value || 0).toLocaleString("en-IN")}
+      </p>
+    </div>
+  );
+}
+
+const axisTick = { fontSize: 11, fill: "var(--color-muted-foreground)" };
+
+function SalesCharts({ report, isLoading }: { report: SalesReportResult | undefined; isLoading: boolean }) {
+  const byDate = useMemo(
+    () =>
+      (report?.breakdowns.salesByDate ?? []).map((d) => ({
+        label: new Date(d.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+        value: d.totalSales,
+      })),
+    [report],
+  );
+  const byProduct = useMemo(
+    () =>
+      [...(report?.breakdowns.salesByProduct ?? [])]
+        .sort((a, b) => b.totalSales - a.totalSales)
+        .slice(0, 6)
+        .map((p) => ({ label: p.productName, value: p.totalSales })),
+    [report],
+  );
+
+  if (isLoading) return null;
+  if (byDate.length === 0 && byProduct.length === 0) {
+    return (
+      <EmptyState
+        title="No sales in this period"
+        description="Adjust the filters or date range to see revenue trends and top products."
+      />
+    );
+  }
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <ChartCard title="Revenue trend" subtitle="Daily sales for the selected filters">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={byDate} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="reportFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.22} />
+                <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} stroke="var(--color-border)" strokeDasharray="3 3" />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={axisTick} minTickGap={24} />
+            <YAxis tickLine={false} axisLine={false} width={52} tick={axisTick} tickFormatter={inrShort} />
+            <Tooltip content={<ChartTip />} cursor={{ stroke: "var(--color-border)" }} />
+            <Area type="monotone" dataKey="value" stroke="var(--color-chart-1)" strokeWidth={2} fill="url(#reportFill)" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </ChartCard>
+      <ChartCard title="Top products" subtitle="By revenue">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={byProduct} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid horizontal={false} stroke="var(--color-border)" strokeDasharray="3 3" />
+            <XAxis type="number" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={inrShort} />
+            <YAxis type="category" dataKey="label" tickLine={false} axisLine={false} width={120} tick={axisTick} />
+            <Tooltip content={<ChartTip />} cursor={{ fill: "var(--color-accent)" }} />
+            <Bar dataKey="value" fill="var(--color-chart-1)" radius={[0, 4, 4, 0]} barSize={14} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    </div>
   );
 }
