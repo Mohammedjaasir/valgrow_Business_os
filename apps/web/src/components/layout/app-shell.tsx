@@ -324,11 +324,17 @@ function ThemeSwitcher() {
 }
 
 function UserMenu() {
+  const { data: userMe } = useCurrentUser();
   const logoutMutation = useLogoutMutation();
 
-  const fullName = "John Doe";
-  const initials = "JD";
-  const roleName = "Admin";
+  const fullName =
+    [userMe?.user?.firstName, userMe?.user?.lastName].filter(Boolean).join(" ") || "Account";
+  const initials =
+    [userMe?.user?.firstName, userMe?.user?.lastName]
+      .filter(Boolean)
+      .map((n) => n![0]!.toUpperCase())
+      .join("") || "?";
+  const roleName = userMe?.role?.name ?? "Member";
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {

@@ -46,11 +46,11 @@ function TaxReportsPage() {
             <CardHeader className="border-b pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Input Tax Credit Claimed (Purchases)</CardTitle>
-                <Calculator className="h-5 w-5 text-emerald-600" />
+                <Calculator className="h-5 w-5 text-success" />
               </div>
             </CardHeader>
             <CardContent className="pt-4 space-y-2">
-              <div className="text-3xl font-extrabold font-mono text-emerald-600">
+              <div className="text-3xl font-extrabold font-mono text-success">
                 ₹{(taxData?.totalInputTaxClaimed || 0).toLocaleString("en-IN")}
               </div>
               <p className="text-xs text-muted-foreground">Eligible Input Tax Credit (ITC) paid on vendor invoices.</p>

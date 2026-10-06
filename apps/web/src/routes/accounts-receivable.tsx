@@ -147,13 +147,13 @@ function AccountsReceivablePage() {
                 <Card>
                   <CardHeader className="py-3">
                     <span className="text-xs font-semibold text-muted-foreground uppercase">31 - 60 Days</span>
-                    <span className="text-xl font-bold text-amber-600">₹{aging.summary.days31To60.toLocaleString("en-IN")}</span>
+                    <span className="text-xl font-bold text-warning">₹{aging.summary.days31To60.toLocaleString("en-IN")}</span>
                   </CardHeader>
                 </Card>
                 <Card>
                   <CardHeader className="py-3">
                     <span className="text-xs font-semibold text-muted-foreground uppercase">61 - 90 Days</span>
-                    <span className="text-xl font-bold text-orange-600">₹{aging.summary.days61To90.toLocaleString("en-IN")}</span>
+                    <span className="text-xl font-bold text-destructive/80">₹{aging.summary.days61To90.toLocaleString("en-IN")}</span>
                   </CardHeader>
                 </Card>
                 <Card>
@@ -183,8 +183,8 @@ function AccountsReceivablePage() {
                         <td className="px-4 py-3 font-medium">{c.customer.name} ({c.customer.customerCode})</td>
                         <td className="px-4 py-3 text-right font-mono">₹{c.current.toLocaleString("en-IN")}</td>
                         <td className="px-4 py-3 text-right font-mono">₹{c.days1To30.toLocaleString("en-IN")}</td>
-                        <td className="px-4 py-3 text-right font-mono text-amber-600">₹{c.days31To60.toLocaleString("en-IN")}</td>
-                        <td className="px-4 py-3 text-right font-mono text-orange-600">₹{c.days61To90.toLocaleString("en-IN")}</td>
+                        <td className="px-4 py-3 text-right font-mono text-warning">₹{c.days31To60.toLocaleString("en-IN")}</td>
+                        <td className="px-4 py-3 text-right font-mono text-destructive/80">₹{c.days61To90.toLocaleString("en-IN")}</td>
                         <td className="px-4 py-3 text-right font-mono text-destructive">₹{c.daysOver90.toLocaleString("en-IN")}</td>
                         <td className="px-4 py-3 text-right font-mono font-bold">₹{c.total.toLocaleString("en-IN")}</td>
                       </tr>

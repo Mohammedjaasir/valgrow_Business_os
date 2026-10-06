@@ -166,7 +166,7 @@ function TasksPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 text-xs text-emerald-600 border-emerald-600/30 hover:bg-emerald-50"
+                className="h-7 text-xs text-success border-success/30 hover:bg-success-soft"
                 onClick={() => handleCompleteTask(task)}
               >
                 <CheckCircle className="mr-1 h-3 w-3" /> Complete

@@ -58,7 +58,7 @@ function FinancialReportsPage() {
               </div>
               <div>
                 {tbData?.totals.balanced ? (
-                  <Badge variant="outline" className="gap-1 border-emerald-500/30 text-emerald-600">
+                  <Badge variant="outline" className="gap-1 border-success/30 text-success">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Debit = Credit (Balanced)
                   </Badge>
                 ) : (
@@ -149,7 +149,7 @@ function FinancialReportsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="font-semibold text-sm uppercase text-amber-600 border-b pb-1">Cost of Goods Sold (COGS)</h3>
+                    <h3 className="font-semibold text-sm uppercase text-warning border-b pb-1">Cost of Goods Sold (COGS)</h3>
                     {pnlData?.cogs.items.map((i, idx) => (
                       <div key={idx} className="flex justify-between text-sm py-1">
                         <span>{i.accountCode} - {i.accountName}</span>
@@ -158,7 +158,7 @@ function FinancialReportsPage() {
                     ))}
                     <div className="flex justify-between font-bold text-sm border-t pt-1">
                       <span>Total COGS</span>
-                      <span className="font-mono text-amber-600">₹{pnlData?.cogs.total.toLocaleString("en-IN")}</span>
+                      <span className="font-mono text-warning">₹{pnlData?.cogs.total.toLocaleString("en-IN")}</span>
                     </div>
                   </div>
 
@@ -181,7 +181,7 @@ function FinancialReportsPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between font-extrabold text-lg bg-emerald-500/10 text-emerald-700 p-4 rounded-md border border-emerald-500/30">
+                  <div className="flex justify-between font-extrabold text-lg bg-success-soft text-success p-4 rounded-md border border-success/30">
                     <span>NET OPERATING PROFIT</span>
                     <span className="font-mono">₹{pnlData?.netProfit.toLocaleString("en-IN")}</span>
                   </div>

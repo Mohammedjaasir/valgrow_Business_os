@@ -172,7 +172,7 @@ function FiscalYearsPage() {
                         )}
                         {p.status === "LOCKED" && (
                           <span className="text-xs text-muted-foreground italic flex items-center justify-center w-full">
-                            <CheckCircle2 className="mr-1 h-3 w-3 text-emerald-500" /> Irreversibly Locked
+                            <CheckCircle2 className="mr-1 h-3 w-3 text-success" /> Irreversibly Locked
                           </span>
                         )}
                       </div>

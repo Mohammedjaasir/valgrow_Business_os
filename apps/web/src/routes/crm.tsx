@@ -174,13 +174,13 @@ function CrmDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between text-xs font-medium bg-muted/30 p-2.5 rounded-md">
-              <div className="flex items-center gap-1.5 text-emerald-600 font-semibold">
+              <div className="flex items-center gap-1.5 text-success font-semibold">
                 <Award className="h-4 w-4" /> Won: {wonOpps.length}
               </div>
-              <div className="flex items-center gap-1.5 text-blue-600 font-semibold">
+              <div className="flex items-center gap-1.5 text-info font-semibold">
                 <TrendingUp className="h-4 w-4" /> Open: {openOpps.length}
               </div>
-              <div className="flex items-center gap-1.5 text-rose-600 font-semibold">
+              <div className="flex items-center gap-1.5 text-destructive font-semibold">
                 <AlertTriangle className="h-4 w-4" /> Lost: {lostOpps.length}
               </div>
             </div>

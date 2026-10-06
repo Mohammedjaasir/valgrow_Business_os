@@ -221,7 +221,7 @@ function ChartOfAccountsPage() {
                       </td>
                       <td className="px-4 py-3">
                         {acc.isSystemAccount ? (
-                          <Badge variant="outline" className="gap-1 border-emerald-500/30 text-emerald-600">
+                          <Badge variant="outline" className="gap-1 border-success/30 text-success">
                             <CheckCircle2 className="h-3 w-3" /> System
                           </Badge>
                         ) : (

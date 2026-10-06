@@ -268,7 +268,7 @@ function CustomerSegmentsPage() {
                       {c.city || c.state || "Location unassigned"}
                     </div>
                   </div>
-                  <span className="text-emerald-600 font-medium">{c.status}</span>
+                  <span className="text-success font-medium">{c.status}</span>
                 </div>
               ))
             )}

@@ -199,7 +199,7 @@ function LeadsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 text-xs text-emerald-600 border-emerald-600/30 hover:bg-emerald-50"
+                className="h-7 text-xs text-success border-success/30 hover:bg-success-soft"
                 onClick={() => {
                   setConvertingLead(lead);
                   setExistingCustomerId("");
@@ -415,7 +415,7 @@ function LeadsPage() {
 
           {conversionResult ? (
             <div className="space-y-4 py-2">
-              <div className="p-3 bg-emerald-50 text-emerald-800 text-xs rounded-md">
+              <div className="p-3 bg-success-soft text-success text-xs rounded-md">
                 ✅ Lead converted successfully!
               </div>
               <div className="text-xs space-y-1">
@@ -479,7 +479,7 @@ function LeadsPage() {
                 <Button
                   type="submit"
                   variant="default"
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  className="bg-success text-primary-foreground hover:bg-success/90"
                 >
                   Confirm Conversion
                 </Button>
