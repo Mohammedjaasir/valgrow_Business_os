@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+**/.output
+**/.vercel
+**/.tanstack
+**/.nitro
+.git
+.env
+.env.*
+graphify-out
+.superpowers
+.agents
+scratch
+docs
+*.log
+image.png
