@@ -1,30 +1,26 @@
-import { useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { motion } from "motion/react";
 import {
-  ArrowRight,
   Bell,
   Building2,
   Check,
   ChevronsUpDown,
   CircleHelp,
-  Crown,
   GitBranch,
-  LayoutGrid,
   LogOut,
   Menu,
   Moon,
   PanelLeftClose,
+  PanelLeftOpen,
   Search,
   Settings,
-  Sparkles,
   Sun,
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -37,11 +33,12 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationItem } from "@/components/foundation/notification-item";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { useTheme } from "@/components/theme-provider";
-import { branches, navGroups, notifications, organizations, primaryNav } from "@/lib/nav";
+import { branches, navGroups, notifications, organizations } from "@/lib/nav";
+import { PageTransition } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import valgrowLogo from "@/assets/valgrow-logo.png";
 import { useCurrentUser } from "@/hooks/queries/useCurrentUser";
 import { useOrganizations } from "@/hooks/queries/useOrganizations";
 import { useBranches } from "@/hooks/queries/useBranches";
@@ -49,131 +46,35 @@ import { useNotifications } from "@/hooks/queries/useNotifications";
 import { useLogoutMutation } from "@/hooks/queries/useAuthMutations";
 import { setActiveOrgId } from "@/lib/api-client";
 
-function Brand({ compact = false }: { compact?: boolean }) {
+const COMPACT_KEY = "valgrow-sidebar-compact";
+
+function readCompact() {
+  try {
+    return localStorage.getItem(COMPACT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function isActivePath(pathname: string, url: string) {
+  if (url === "/") return pathname === "/";
+  return pathname === url || pathname.startsWith(`${url}/`);
+}
+
+function BrandMark({ className }: { className?: string }) {
   return (
-    <Link to="/" className={cn("flex items-center px-1", compact ? "justify-center" : "gap-2.5")}>
-      <span
-        className={cn(
-          "flex shrink-0 items-center justify-center rounded-full bg-white border border-slate-300 text-slate-900 font-extrabold shadow-2xs",
-          compact ? "h-9 w-9 text-xs" : "h-9 w-9 text-xs",
-        )}
-      >
-        VG
-      </span>
-      {!compact ? (
-        <span className="leading-tight truncate">
-          <span className="block text-sm font-extrabold text-slate-900">ValGrow</span>
-          <span className="block text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-            BUSINESS OS
-          </span>
-        </span>
-      ) : null}
-    </Link>
+    <span
+      className={cn(
+        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary font-display text-[11px] font-bold tracking-tight text-primary-foreground shadow-xs",
+        className,
+      )}
+    >
+      VG
+    </span>
   );
 }
 
-function PrimaryNavLinks() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-
-  return (
-    <nav className="hidden items-center gap-1 lg:flex">
-      {primaryNav.map((item) => {
-        const active = !item.soon && pathname === item.url;
-        const base = cn(
-          "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          active
-            ? "bg-accent text-accent-foreground"
-            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-        );
-
-        if (item.soon) {
-          return (
-            <TooltipProvider key={item.title} delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span aria-disabled className={cn(base, "cursor-not-allowed opacity-50")}>
-                    {item.title}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">{item.title} — coming soon</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          );
-        }
-
-        return (
-          <Link key={item.title} to={item.url} className={base}>
-            {item.title}
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
-function HeaderIconLink({
-  to,
-  label,
-  icon: Icon,
-}: {
-  to: string;
-  label: string;
-  icon: ComponentType<{ className?: string }>;
-}) {
-  return (
-    <Button asChild variant="ghost" size="icon" aria-label={label}>
-      <Link to={to}>
-        <Icon className="h-4 w-4" />
-      </Link>
-    </Button>
-  );
-}
-
-function SidebarNav({ compact, onNavigate }: { compact: boolean; onNavigate?: () => void }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-
-  return (
-    <ScrollArea className="h-full">
-      <nav className="space-y-5 p-3">
-        {navGroups.map((group, idx) => (
-          <div key={group.label || idx} className="space-y-1">
-            {!compact && group.label ? (
-              <p className="px-2.5 pb-1 text-[10px] font-bold tracking-wider text-muted-foreground/70 uppercase">
-                {group.label}
-              </p>
-            ) : compact && group.label ? (
-              <Separator className="mx-auto my-2 w-6" />
-            ) : null}
-            {group.items.map((item) => {
-              const active = !item.soon && pathname === item.url;
-              const content = (
-                <>
-                  <item.icon className={cn("h-4 w-4 shrink-0", active ? "text-purple-700" : "text-slate-500")} />
-                  {!compact ? <span className="truncate">{item.title}</span> : null}
-                </>
-              );
-              const base = cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all",
-                compact && "justify-center",
-                active
-                  ? "bg-purple-100/80 text-purple-900 font-semibold"
-                  : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-900",
-              );
-
-              return (
-                <Link key={item.title} to={item.url} className={base} onClick={onNavigate}>
-                  {content}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
-      </nav>
-    </ScrollArea>
-  );
-}
-
-function OrgSwitcher() {
+function OrgSwitcher({ compact }: { compact: boolean }) {
   const { data: userMe } = useCurrentUser();
   const { data: apiOrgs } = useOrganizations();
   const orgList = apiOrgs && apiOrgs.length > 0 ? apiOrgs : organizations;
@@ -190,17 +91,37 @@ function OrgSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="h-9 justify-between gap-2 px-2.5 shrink-0">
-          <Building2 className="h-4 w-4 text-primary shrink-0" />
-          <span className="truncate text-sm font-medium">{currentOrg.name}</span>
-          <ChevronsUpDown className="h-3.5 w-3.5 opacity-60 shrink-0" />
-        </Button>
+        <button
+          type="button"
+          className={cn(
+            "flex w-full min-w-0 items-center gap-2.5 rounded-md p-1.5 text-left transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+            compact && "justify-center",
+          )}
+          aria-label="Switch organization"
+        >
+          <BrandMark />
+          {!compact ? (
+            <>
+              <span className="min-w-0 flex-1 leading-tight">
+                <span className="block truncate text-[13px] font-semibold text-foreground">
+                  {currentOrg.name}
+                </span>
+                <span className="block truncate text-[11px] text-muted-foreground">
+                  ValGrow Business OS
+                </span>
+              </span>
+              <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            </>
+          ) : null}
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
-        <DropdownMenuLabel>Organizations</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+          Organizations
+        </DropdownMenuLabel>
         {orgList.map((o) => (
           <DropdownMenuItem key={o.id} onClick={() => handleSelect(o.id)} className="gap-2">
-            <Building2 className="h-4 w-4" />
+            <Building2 className="h-4 w-4 text-muted-foreground" />
             <span className="flex-1 truncate">{o.name}</span>
             <span className="text-xs text-muted-foreground">{o.plan}</span>
             {o.id === currentOrg.id ? <Check className="h-4 w-4 text-primary" /> : null}
@@ -215,6 +136,88 @@ function OrgSwitcher() {
   );
 }
 
+function SidebarNav({
+  compact,
+  onNavigate,
+  layoutGroup,
+}: {
+  compact: boolean;
+  onNavigate?: () => void;
+  layoutGroup: string;
+}) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  return (
+    <ScrollArea className="h-full">
+      <TooltipProvider delayDuration={0}>
+        <nav className={cn("space-y-4 py-3", compact ? "px-2" : "px-3")}>
+          {navGroups.map((group, idx) => (
+            <div key={group.label || idx} className="space-y-0.5">
+              {group.label ? (
+                compact ? (
+                  <div className="mx-auto my-2 h-px w-5 bg-sidebar-border" />
+                ) : (
+                  <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                    {group.label}
+                  </p>
+                )
+              ) : null}
+              {group.items.map((item) => {
+                const active = !item.soon && isActivePath(pathname, item.url);
+                const link = (
+                  <Link
+                    key={item.title}
+                    to={item.url}
+                    onClick={onNavigate}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "group relative flex h-8 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors",
+                      compact && "justify-center px-0",
+                      active
+                        ? "font-medium text-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/70 hover:text-foreground",
+                    )}
+                  >
+                    {active ? (
+                      <motion.span
+                        layoutId={`${layoutGroup}-nav-active`}
+                        className="absolute inset-0 rounded-md bg-sidebar-accent"
+                        transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                      >
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-primary" />
+                      </motion.span>
+                    ) : null}
+                    <item.icon
+                      className={cn(
+                        "relative h-4 w-4 shrink-0 transition-colors",
+                        active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                      )}
+                    />
+                    {!compact ? <span className="relative truncate">{item.title}</span> : null}
+                    {!compact && item.soon ? (
+                      <Badge variant="neutral" className="relative ml-auto px-1.5 py-0 text-[10px]">
+                        Soon
+                      </Badge>
+                    ) : null}
+                  </Link>
+                );
+
+                if (!compact) return link;
+                return (
+                  <Tooltip key={item.title}>
+                    <TooltipTrigger asChild>{link}</TooltipTrigger>
+                    <TooltipContent side="right">{item.title}</TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+      </TooltipProvider>
+    </ScrollArea>
+  );
+}
+
 function BranchSwitcher() {
   const { data: apiBranches } = useBranches();
   const branchList = apiBranches && apiBranches.length > 0 ? apiBranches : branches;
@@ -224,17 +227,19 @@ function BranchSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-9 justify-between gap-2 px-2.5 shrink-0">
-          <GitBranch className="h-4 w-4 text-primary shrink-0" />
-          <span className="truncate text-sm font-medium">{current.name}</span>
-          <ChevronsUpDown className="h-3.5 w-3.5 opacity-60 shrink-0" />
+        <Button variant="ghost" size="sm" className="hidden max-w-[180px] gap-1.5 md:inline-flex">
+          <GitBranch className="text-muted-foreground" />
+          <span className="truncate text-foreground">{current.name}</span>
+          <ChevronsUpDown className="h-3.5 w-3.5 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-60">
-        <DropdownMenuLabel>Branches</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-60">
+        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+          Branches
+        </DropdownMenuLabel>
         {branchList.map((b) => (
           <DropdownMenuItem key={b.id} onClick={() => setSelected(b.id)} className="gap-2">
-            <GitBranch className="h-4 w-4" />
+            <GitBranch className="h-4 w-4 text-muted-foreground" />
             <span className="flex-1 truncate">{b.name}</span>
             <span className="text-xs text-muted-foreground">{b.city}</span>
             {b.id === current.id ? <Check className="h-4 w-4 text-primary" /> : null}
@@ -254,17 +259,19 @@ function NotificationBell() {
   const list =
     apiNotifications && apiNotifications.length > 0
       ? apiNotifications.map((n) => ({
-        id: n.id,
-        title: n.title,
-        body: n.body,
-        time: new Date(n.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        unread: n.unread,
-        kind: (n.kind.toLowerCase() === "error" ? "warning" : n.kind.toLowerCase()) as
-          "info" | "success" | "warning",
-      }))
+          id: n.id,
+          title: n.title,
+          body: n.body,
+          time: new Date(n.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          unread: n.unread,
+          kind: (n.kind.toLowerCase() === "error" ? "warning" : n.kind.toLowerCase()) as
+            | "info"
+            | "success"
+            | "warning",
+        }))
       : notifications;
 
   const unread = list.filter((n) => n.unread).length;
@@ -272,33 +279,26 @@ function NotificationBell() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative shrink-0"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+          <Bell />
           {unread > 0 ? (
-            <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#5B21B6] text-[10px] font-bold text-white shadow-2xs">
-              {unread}
-            </span>
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
           ) : null}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between border-b px-4 py-3">
           <p className="text-sm font-semibold">Notifications</p>
-          <Badge variant="secondary">{unread} new</Badge>
+          {unread > 0 ? <Badge variant="brand">{unread} new</Badge> : null}
         </div>
-        <div className="max-h-80 space-y-1 overflow-y-auto p-2">
+        <div className="max-h-80 space-y-0.5 overflow-y-auto p-1.5">
           {list.map((n) => (
             <NotificationItem key={n.id} {...n} />
           ))}
         </div>
-        <div className="border-t border-border p-2">
-          <Button asChild variant="ghost" size="sm" className="w-full">
-            <Link to="/notifications">Open notification center</Link>
+        <div className="border-t p-1.5">
+          <Button asChild variant="ghost" size="sm" className="w-full text-foreground">
+            <Link to="/notifications">View all notifications</Link>
           </Button>
         </div>
       </PopoverContent>
@@ -309,20 +309,21 @@ function NotificationBell() {
 function ThemeSwitcher() {
   const { resolved, toggle } = useTheme();
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggle}
-      aria-label="Toggle theme"
-      className="shrink-0"
-    >
-      {resolved === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
+      <motion.span
+        key={resolved}
+        initial={{ rotate: -90, opacity: 0, scale: 0.6 }}
+        animate={{ rotate: 0, opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2 }}
+        className="flex"
+      >
+        {resolved === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </motion.span>
     </Button>
   );
 }
 
 function UserMenu() {
-  const { data: userMe } = useCurrentUser();
   const logoutMutation = useLogoutMutation();
 
   const fullName = "John Doe";
@@ -342,15 +343,15 @@ function UserMenu() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2.5 shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-opacity hover:opacity-90 cursor-pointer"
+          className="flex shrink-0 items-center gap-2 rounded-full p-0.5 pr-1 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:rounded-md md:pr-2"
+          aria-label="Account menu"
         >
-          <div className="h-9 w-9 rounded-full bg-[#4C1D95] text-white flex items-center justify-center shrink-0 font-semibold text-xs shadow-xs">
-            <span>{initials}</span>
-          </div>
-          <div className="text-left leading-tight hidden sm:block">
-            <span className="block text-xs font-bold text-slate-900">{fullName}</span>
-            <span className="block text-[10px] font-medium text-slate-500">{roleName}</span>
-          </div>
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-[11px] font-semibold text-primary">
+            {initials}
+          </span>
+          <span className="hidden text-left leading-tight md:block">
+            <span className="block text-[13px] font-medium text-foreground">{fullName}</span>
+          </span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -361,164 +362,169 @@ function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link to="/profile">
-            <UserRound className="mr-2 h-4 w-4" /> Profile
+            <UserRound /> Profile
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/preferences">
-            <Settings className="mr-2 h-4 w-4" /> Preferences
+            <Settings /> Preferences
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-          <LogOut className="mr-2 h-4 w-4" /> Sign out
+          <LogOut /> Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
+function SearchTrigger({ onOpen }: { onOpen: () => void }) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="hidden h-8 w-64 items-center gap-2 rounded-md border border-input bg-surface px-2.5 text-[13px] text-muted-foreground shadow-xs transition-colors hover:border-foreground/20 hover:text-foreground md:flex"
+      >
+        <Search className="h-3.5 w-3.5" />
+        <span className="flex-1 text-left">Search…</span>
+        <kbd className="rounded border bg-surface-2 px-1.5 py-px font-sans text-[10px] font-medium">
+          Ctrl K
+        </kbd>
+      </button>
+      <Button variant="ghost" size="icon" onClick={onOpen} className="md:hidden" aria-label="Search">
+        <Search />
+      </Button>
+    </>
+  );
+}
+
 export function AppShell({
   children,
   rightPanel,
+  fullBleed = false,
 }: {
   children: ReactNode;
   rightPanel?: ReactNode;
+  fullBleed?: boolean;
 }) {
   const [compact, setCompact] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  useEffect(() => {
+    setCompact(readCompact());
+  }, []);
+
+  const toggleCompact = () => {
+    setCompact((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem(COMPACT_KEY, next ? "1" : "0");
+      } catch {
+        // storage unavailable — keep in-memory state only
+      }
+      return next;
+    });
+  };
+
   return (
-    <div className="relative isolate h-screen w-full overflow-hidden bg-slate-50 p-0 sm:p-2 lg:p-3">
-      <div className="mx-auto flex h-full w-full max-w-[1720px] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
-        <aside
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      <aside
+        className={cn(
+          "hidden h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-out lg:flex",
+          compact ? "w-[60px]" : "w-[248px]",
+        )}
+      >
+        <div className={cn("flex h-14 shrink-0 items-center", compact ? "px-2" : "px-3")}>
+          <OrgSwitcher compact={compact} />
+        </div>
+        <div className="min-h-0 flex-1">
+          <SidebarNav compact={compact} layoutGroup="desktop" />
+        </div>
+        <div
           className={cn(
-            "hidden h-full shrink-0 flex-col border-r border-slate-200/80 bg-[#FAFAFC] transition-[width] duration-200 lg:flex",
-            compact ? "w-[100px]" : "w-60",
+            "flex shrink-0 items-center gap-1 border-t border-sidebar-border p-2",
+            compact ? "flex-col" : "justify-between",
           )}
         >
-          {compact ? (
-            <div className="relative flex h-[64px] w-full items-center px-3 border-b border-slate-200/80">
-              <Brand compact />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setCompact((c) => !c)}
-                aria-label="Expand sidebar"
-                className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 shrink-0 hover:bg-slate-100"
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex h-16 w-full items-center justify-between px-3 border-b border-slate-200/80">
-              <div className="flex items-center gap-2">
-                <Brand />
-                <button
-                  type="button"
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors shadow-2xs"
-                  aria-label="App switcher"
-                >
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setCompact((c) => !c)}
-                aria-label="Collapse sidebar"
-                className="shrink-0 hover:bg-slate-100"
-              >
-                <PanelLeftClose className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-          <div className="min-h-0 flex-1">
-            <SidebarNav compact={compact} />
-          </div>
-          <div className="p-3">
-            {compact ? (
-              <div className="flex items-center justify-center rounded-xl bg-purple-100 p-2.5 text-purple-700">
-                <Crown className="h-4 w-4" />
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-purple-100/80 bg-[#FAF7FF] p-3.5 text-center">
-                <div className="mx-auto mb-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-purple-100 text-purple-700">
-                  <Crown className="h-3.5 w-3.5" />
-                </div>
-                <p className="text-[11px] text-slate-500 font-medium">You are on</p>
-                <p className="text-xs font-bold text-slate-900">Free Plan</p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-2.5 w-full h-8 border-purple-200 bg-white text-[11px] font-semibold text-purple-700 hover:bg-purple-50 hover:text-purple-800 shadow-2xs"
-                >
-                  Upgrade Plan <ArrowRight className="ml-1 h-3 w-3" />
+          <Button
+            asChild
+            variant="ghost"
+            size={compact ? "icon" : "sm"}
+            className={cn(!compact && "flex-1 justify-start")}
+          >
+            <Link to="/help" aria-label="Help and support">
+              <CircleHelp />
+              {!compact ? "Help & support" : null}
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleCompact}
+            aria-label={compact ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {compact ? <PanelLeftOpen /> : <PanelLeftClose />}
+          </Button>
+        </div>
+      </aside>
+
+      <div className="flex h-full min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between gap-3 border-b bg-background/80 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="-ml-2 lg:hidden" aria-label="Open menu">
+                  <Menu />
                 </Button>
-              </div>
-            )}
+              </SheetTrigger>
+              <SheetContent side="left" className="flex w-72 flex-col gap-0 bg-sidebar p-0">
+                <SheetTitle className="sr-only">Navigation</SheetTitle>
+                <div className="flex h-14 shrink-0 items-center px-3">
+                  <OrgSwitcher compact={false} />
+                </div>
+                <div className="min-h-0 flex-1">
+                  <SidebarNav
+                    compact={false}
+                    layoutGroup="mobile"
+                    onNavigate={() => setMobileOpen(false)}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+            <Breadcrumbs />
           </div>
-        </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col h-full bg-white">
-          <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white px-4 sm:px-6">
-            {/* Left Header Title & Mobile menu */}
-            <div className="flex items-center gap-3">
-              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="lg:hidden shrink-0"
-                    aria-label="Open menu"
-                  >
-                    <Menu className="h-5 w-5 text-slate-600" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-72 bg-sidebar p-0">
-                  <SheetTitle className="px-4 pt-4">
-                    <Brand />
-                  </SheetTitle>
-                  <div className="h-[calc(100vh-5rem)]">
-                    <SidebarNav compact={false} onNavigate={() => setMobileOpen(false)} />
-                  </div>
-                </SheetContent>
-              </Sheet>
+          <div className="flex shrink-0 items-center gap-1">
+            <SearchTrigger onOpen={() => setPaletteOpen(true)} />
+            <div className="mx-1 hidden h-5 w-px bg-border md:block" />
+            <BranchSwitcher />
+            <ThemeSwitcher />
+            <NotificationBell />
+            <UserMenu />
+          </div>
+        </header>
 
-              <button
-                onClick={() => setCompact((c) => !c)}
-                className="hidden lg:flex items-center justify-center p-1 text-slate-500 hover:text-slate-900 transition-colors"
-                aria-label="Toggle Menu"
-              >
-                <Menu className="h-5 w-5" />
-              </button>
-              <h1 className="text-base font-bold text-slate-900 hidden sm:block">Overview</h1>
-            </div>
-
-            {/* Right-side controls */}
-            <div className="flex shrink-0 items-center gap-3">
-              <NotificationBell />
-              <BranchSwitcher />
-              <UserMenu />
-            </div>
-          </header>
-
-          <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+        <main className="min-w-0 flex-1 overflow-y-auto">
+          {fullBleed ? (
+            <PageTransition>{children}</PageTransition>
+          ) : (
             <div
               className={cn(
-                "mx-auto w-full",
-                rightPanel ? "grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]" : "max-w-7xl",
+                "mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8",
+                rightPanel && "grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]",
               )}
             >
-              <div className="min-w-0 space-y-6">{children}</div>
+              <PageTransition>{children}</PageTransition>
               {rightPanel ? <div className="space-y-4">{rightPanel}</div> : null}
             </div>
-          </main>
-        </div>
-
-        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+          )}
+        </main>
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
 }
