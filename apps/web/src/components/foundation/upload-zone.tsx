@@ -26,11 +26,11 @@ export function UploadZone() {
           e.preventDefault();
           setHover(false);
         }}
-        className={`flex flex-col items-center gap-2 rounded-xl border-2 border-dashed p-10 text-center transition-colors ${
-          hover ? "border-primary bg-primary/5" : "border-border bg-surface-2/40"
+        className={`flex flex-col items-center gap-2 rounded-lg border border-dashed p-10 text-center transition-colors ${
+          hover ? "border-primary bg-primary-soft/50" : "border-border bg-surface-2/40"
         }`}
       >
-        <UploadCloud className="h-8 w-8 text-primary" />
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg border bg-surface text-primary shadow-xs"><UploadCloud className="h-5 w-5" /></span>
         <p className="text-sm font-semibold">Drop files here</p>
         <p className="text-xs text-muted-foreground">
           Presentational uploader — no files are stored.
@@ -46,9 +46,9 @@ export function UploadZone() {
           return (
             <div
               key={f.name}
-              className="flex items-center gap-3 rounded-lg border border-border p-3"
+              className="flex items-center gap-3 rounded-lg border bg-surface p-3"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <span className="flex h-9 w-9 items-center justify-center rounded-md bg-secondary text-muted-foreground">
                 <Icon className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">

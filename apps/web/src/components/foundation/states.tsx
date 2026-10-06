@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
+import { motion } from "motion/react";
 import { AlertTriangle, Inbox, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fadeRise } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export function EmptyState({
-  title = "Nothing here yet",
-  description = "Placeholder content will appear once a module is connected.",
+  title = "No records yet",
+  description = "Records you create will show up here.",
   action,
   icon,
   className,
@@ -18,27 +20,30 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div
+    <motion.div
+      variants={fadeRise}
+      initial="hidden"
+      animate="show"
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-surface-2/50 px-6 py-14 text-center",
+        "flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-surface px-6 py-14 text-center",
         className,
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-surface-2 text-muted-foreground shadow-xs">
         {icon ?? <Inbox className="h-5 w-5" />}
       </div>
       <div className="space-y-1">
-        <p className="font-semibold">{title}</p>
-        <p className="mx-auto max-w-sm text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="mx-auto max-w-sm text-[13px] text-muted-foreground">{description}</p>
       </div>
-      {action}
-    </div>
+      {action ? <div className="mt-1">{action}</div> : null}
+    </motion.div>
   );
 }
 
 export function ErrorState({
-  title = "Something went wrong",
-  description = "This is a presentational error state. Retry is a placeholder action.",
+  title = "Couldn't load this data",
+  description = "Check your connection and try again.",
   onRetry,
   className,
 }: {
@@ -48,38 +53,49 @@ export function ErrorState({
   className?: string;
 }) {
   return (
-    <div
+    <motion.div
+      variants={fadeRise}
+      initial="hidden"
+      animate="show"
+      role="alert"
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-14 text-center",
+        "flex flex-col items-center justify-center gap-3 rounded-lg border border-destructive/20 bg-destructive-soft/40 px-6 py-12 text-center",
         className,
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/15 text-destructive">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive-soft text-destructive">
         <AlertTriangle className="h-5 w-5" />
       </div>
       <div className="space-y-1">
-        <p className="font-semibold">{title}</p>
-        <p className="mx-auto max-w-sm text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="mx-auto max-w-sm text-[13px] text-muted-foreground">{description}</p>
       </div>
-      <Button variant="outline" size="sm" onClick={onRetry}>
-        <RefreshCw className="mr-2 h-4 w-4" />
-        Try again
-      </Button>
-    </div>
+      {onRetry ? (
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          <RefreshCw />
+          Try again
+        </Button>
+      ) : null}
+    </motion.div>
   );
 }
 
 export function LoadingSkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <div className="space-y-3">
+    <div className="panel overflow-hidden" aria-busy="true" aria-label="Loading">
+      <div className="flex gap-6 border-b bg-surface-2/60 px-4 py-3">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="ml-auto h-3 w-12" />
+      </div>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 rounded-xl border border-border p-4">
-          <Skeleton className="h-10 w-10 rounded-full" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-3.5 w-1/3" />
-            <Skeleton className="h-3 w-2/3" />
-          </div>
-          <Skeleton className="h-8 w-20 rounded-md" />
+        <div key={i} className="flex items-center gap-6 border-b px-4 py-3.5 last:border-0">
+          <Skeleton className="h-7 w-7 rounded-full" />
+          <Skeleton className="h-3.5 w-1/4" />
+          <Skeleton className="h-3.5 w-1/6" />
+          <Skeleton className="h-5 w-16 rounded-md" />
+          <Skeleton className="ml-auto h-3.5 w-14" />
         </div>
       ))}
     </div>
@@ -88,11 +104,10 @@ export function LoadingSkeleton({ rows = 4 }: { rows?: number }) {
 
 export function CardSkeleton() {
   return (
-    <div className="space-y-3 rounded-xl border border-border p-5">
-      <Skeleton className="h-4 w-24" />
-      <Skeleton className="h-8 w-32" />
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-4/5" />
+    <div className="panel space-y-3 p-5" aria-busy="true">
+      <Skeleton className="h-3.5 w-24" />
+      <Skeleton className="h-7 w-32" />
+      <Skeleton className="h-3 w-20" />
     </div>
   );
 }

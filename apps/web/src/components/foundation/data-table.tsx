@@ -1,12 +1,6 @@
 import type { ReactNode } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { motion } from "motion/react";
+import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Pagination,
   PaginationContent,
@@ -15,6 +9,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { staggerContainer, staggerItem } from "@/lib/motion";
 import { EmptyState } from "./states";
 
 export type Column<T> = {
@@ -23,6 +18,8 @@ export type Column<T> = {
   render?: (row: T) => ReactNode;
   className?: string;
 };
+
+const ANIMATED_ROWS = 20;
 
 export function DataTable<T extends Record<string, unknown>>({
   columns,
@@ -38,7 +35,7 @@ export function DataTable<T extends Record<string, unknown>>({
   return (
     <div className="panel overflow-hidden">
       {toolbar ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
           {toolbar}
         </div>
       ) : null}
@@ -47,7 +44,7 @@ export function DataTable<T extends Record<string, unknown>>({
       ) : (
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-[1]">
               <TableRow className="hover:bg-transparent">
                 {columns.map((c) => (
                   <TableHead key={c.key} className={c.className}>
@@ -56,24 +53,39 @@ export function DataTable<T extends Record<string, unknown>>({
                 ))}
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {rows.map((row, i) => (
-                <TableRow key={i}>
-                  {columns.map((c) => (
-                    <TableCell key={c.key} className={c.className}>
-                      {c.render ? c.render(row) : String(row[c.key] ?? "—")}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
+            {/* Stagger runs once per mount; refetches update rows without replaying it. */}
+            <motion.tbody
+              variants={staggerContainer(0.02)}
+              initial="hidden"
+              animate="show"
+              className="[&_tr:last-child]:border-0"
+            >
+              {rows.map((row, i) => {
+                const cells = columns.map((c) => (
+                  <TableCell key={c.key} className={c.className}>
+                    {c.render ? c.render(row) : String(row[c.key] ?? "—")}
+                  </TableCell>
+                ));
+                return i < ANIMATED_ROWS ? (
+                  <motion.tr
+                    key={i}
+                    variants={staggerItem}
+                    className="border-b transition-colors hover:bg-surface-2/70"
+                  >
+                    {cells}
+                  </motion.tr>
+                ) : (
+                  <TableRow key={i}>{cells}</TableRow>
+                );
+              })}
+            </motion.tbody>
           </Table>
         </div>
       )}
       {paginate && rows.length > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border p-3">
-          <p className="px-2 text-xs text-muted-foreground">
-            Showing {rows.length} placeholder records
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-2.5">
+          <p className="tabular text-xs text-muted-foreground">
+            Showing {rows.length} {rows.length === 1 ? "record" : "records"}
           </p>
           <Pagination className="mx-0 w-auto justify-end">
             <PaginationContent>
@@ -84,9 +96,6 @@ export function DataTable<T extends Record<string, unknown>>({
                 <PaginationLink href="#" isActive>
                   1
                 </PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#">2</PaginationLink>
               </PaginationItem>
               <PaginationItem>
                 <PaginationNext href="#" />
