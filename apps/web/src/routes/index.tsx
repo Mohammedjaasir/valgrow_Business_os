@@ -1,13 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/app-shell";
 import {
-  OverviewHeader,
-  WelcomeHeroBanner,
-  OverviewMetricsSection,
-  BusinessHubSection,
-  FeatureCardsSection,
-  HowItWorksSection,
-} from "@/components/dashboard/overview-components";
+  AttentionCard,
+  KpiGrid,
+  OverviewGreeting,
+  RecentSalesCard,
+  RevenueChartCard,
+} from "@/components/dashboard/overview";
 
 const description =
   "ValGrow Business OS — a unified dashboard for organization, people, finance and operations.";
@@ -27,14 +26,13 @@ export const Route = createFileRoute("/")({
 function Overview() {
   return (
     <AppShell>
-      <div className="space-y-8 pb-10">
-        <OverviewHeader />
-        <WelcomeHeroBanner />
-        <OverviewMetricsSection />
-        <BusinessHubSection />
-        <FeatureCardsSection />
-        <HowItWorksSection />
+      <OverviewGreeting />
+      <KpiGrid />
+      <div className="grid gap-6 xl:grid-cols-3">
+        <RevenueChartCard className="xl:col-span-2" />
+        <AttentionCard />
       </div>
+      <RecentSalesCard />
     </AppShell>
   );
 }
