@@ -34,6 +34,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationItem } from "@/components/foundation/notification-item";
+import { BrandLogo } from "@/components/brand-logo";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { useTheme } from "@/components/theme-provider";
@@ -72,13 +73,8 @@ function isActivePath(pathname: string, url: string) {
 
 function BrandMark({ className }: { className?: string }) {
   return (
-    <span
-      className={cn(
-        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary font-display text-[11px] font-bold tracking-tight text-primary-foreground shadow-xs",
-        className,
-      )}
-    >
-      VG
+    <span className={cn("flex h-8 w-10 shrink-0 items-center justify-center", className)}>
+      <BrandLogo className="h-6" />
     </span>
   );
 }

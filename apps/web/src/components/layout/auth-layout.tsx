@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { BarChart3, Boxes, Check, ShoppingCart } from "lucide-react";
 import { fadeRise, staggerContainer, staggerItem } from "@/lib/motion";
+import { BrandLogo } from "@/components/brand-logo";
 
 const highlights = [
   { icon: Boxes, title: "Inventory & POS", text: "Live stock, batches and a fast checkout." },
@@ -11,16 +12,13 @@ const highlights = [
 ];
 
 function LogoMark({ size = "md" }: { size?: "md" | "lg" }) {
-  return (
-    <span
-      className={
-        size === "lg"
-          ? "flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 font-display text-sm font-bold text-white ring-1 ring-white/25 backdrop-blur"
-          : "flex h-8 w-8 items-center justify-center rounded-md bg-primary font-display text-xs font-bold text-primary-foreground"
-      }
-    >
-      VG
+  // On the indigo brand panel the gold mark sits on a white tile, as in the original artwork.
+  return size === "lg" ? (
+    <span className="flex h-11 items-center rounded-lg bg-white px-2.5 shadow-md ring-1 ring-white/40">
+      <BrandLogo className="h-7" />
     </span>
+  ) : (
+    <BrandLogo className="h-7" />
   );
 }
 

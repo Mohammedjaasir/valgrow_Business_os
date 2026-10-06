@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { WELCOME } from "@/lib/onboarding-content";
 import { useOnboarding } from "@/lib/onboarding";
 import { staggerContainer, staggerItem } from "@/lib/motion";
+import { BrandLogo } from "@/components/brand-logo";
 
 const HOW_IT_WORKS_PATH: string = "/how-it-works";
 
 function HeroMark() {
   return (
-    <div className="relative mx-auto flex h-16 w-16 items-center justify-center">
+    <div className="relative mx-auto flex h-16 w-20 items-center justify-center">
       {[0, 1].map((i) => (
         <motion.span
           key={i}
@@ -25,9 +26,9 @@ function HeroMark() {
         initial={{ scale: 0.6, rotate: -8, opacity: 0 }}
         animate={{ scale: 1, rotate: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 320, damping: 18 }}
-        className="gradient-brand relative flex h-14 w-14 items-center justify-center rounded-2xl font-display text-lg font-bold text-primary-foreground shadow-lg"
+        className="relative flex h-16 w-20 items-center justify-center rounded-2xl border bg-surface shadow-lg"
       >
-        VG
+        <BrandLogo className="h-9" />
       </motion.span>
     </div>
   );
