@@ -1,6 +1,6 @@
 # Render Blueprint for the ValGrow API (NestJS + Prisma).
 # Deploy: https://dashboard.render.com/blueprints → New Blueprint Instance → pick this repo.
-# See docs/deploy.md for the full Vercel + Render + Neon setup.
+# See docs/deploy.md for the full Vercel + Render + Coolify (Postgres) setup.
 services:
   - type: web
     name: valgrow-api
@@ -19,7 +19,7 @@ services:
       - key: API_PORT
         value: "10000"
       - key: DATABASE_URL
-        sync: false # Neon connection string (with ?sslmode=require)
+        sync: false # Coolify Postgres public URL, e.g. postgresql://user:pass@<server-ip>:5432/valgrow?sslmode=require
       - key: WEB_URL
         sync: false # Your Vercel URL, e.g. https://valgrow.vercel.app (used for CORS)
       - key: JWT_SECRET
