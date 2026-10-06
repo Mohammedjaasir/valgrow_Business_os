@@ -178,37 +178,31 @@ function POSRegisterPage() {
   });
   const products = searchResult?.data || [];
 
-  // Barcode Submission Handler
-  const handleBarcodeSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!barcodeInput.trim()) return;
+  // Core Barcode Scanning Processor (Shared by manual form and USB scanner listener)
+  const processBarcodeScan = async (code: string) => {
+    const cleanCode = code.trim();
+    if (!cleanCode) return;
 
     setBarcodeError(null);
     setIsSearchingBarcode(true);
 
     try {
-      const match = await findPOSProductByBarcode(barcodeInput.trim());
+      const match = await findPOSProductByBarcode(cleanCode);
       if (match) {
-        // Add to active cart
-        if (!activeCartId && activeSession) {
+        let targetCartId = activeCartId;
+        if (!targetCartId && activeSession) {
           const newCart = await createCartMutation.mutateAsync({
             branchId: activeSession.branchId,
             warehouseId: activeSession.warehouseId,
             sessionId: activeSession.id,
           });
+          targetCartId = newCart.id;
           setActiveCartId(newCart.id);
+        }
+
+        if (targetCartId) {
           await addItemMutation.mutateAsync({
-            cartId: newCart.id,
-            dto: {
-              productId: match.product.id,
-              variantId: match.variant?.id || undefined,
-              quantity: 1,
-              unitPrice: Number(match.price || 0),
-            },
-          });
-        } else if (activeCartId) {
-          await addItemMutation.mutateAsync({
-            cartId: activeCartId,
+            cartId: targetCartId,
             dto: {
               productId: match.product.id,
               variantId: match.variant?.id || undefined,
@@ -219,7 +213,7 @@ function POSRegisterPage() {
         }
         setBarcodeInput("");
       } else {
-        setBarcodeError(`No product found matching barcode "${barcodeInput}"`);
+        setBarcodeError(`No product found matching barcode "${cleanCode}"`);
       }
     } catch {
       setBarcodeError("Error scanning barcode. Please try again.");
@@ -227,6 +221,13 @@ function POSRegisterPage() {
       setIsSearchingBarcode(false);
       barcodeRef.current?.focus();
     }
+  };
+
+  // Barcode Submission Handler (Manual Input Form)
+  const handleBarcodeSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!barcodeInput.trim()) return;
+    await processBarcodeScan(barcodeInput);
   };
 
   // Add Product Card Handler
@@ -338,6 +339,74 @@ function POSRegisterPage() {
   // Refunds Modal State
   const [showRefundModal, setShowRefundModal] = useState(false);
   usePOSSales(activeSession?.id);
+
+  // Global USB HID Barcode Scanner Listener
+  useEffect(() => {
+    let buffer = "";
+    let lastKeyTime = 0;
+    const INTER_CHAR_TIMEOUT = 50; // ms threshold for USB HID rapid key stream
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. Ignore if no active POS register session
+      if (!activeSession) return;
+
+      // 2. Ignore if any modal/dialog is open
+      if (showCloseModal || showHeldModal || showCheckoutModal || showSuccessModal || showRefundModal) {
+        buffer = "";
+        return;
+      }
+
+      // 3. Ignore if active element is a text input, textarea, select, or contenteditable
+      const target = e.target as HTMLElement | null;
+      const tagName = target?.tagName;
+      const isEditable =
+        tagName === "INPUT" ||
+        tagName === "TEXTAREA" ||
+        tagName === "SELECT" ||
+        target?.isContentEditable;
+
+      if (isEditable) {
+        buffer = "";
+        return;
+      }
+
+      const currentTime = Date.now();
+      const timeDiff = currentTime - lastKeyTime;
+
+      // Reset buffer if delay between keystrokes exceeds rapid scan threshold
+      if (lastKeyTime > 0 && timeDiff > INTER_CHAR_TIMEOUT) {
+        buffer = "";
+      }
+
+      lastKeyTime = currentTime;
+
+      if (e.key === "Enter") {
+        if (buffer.length >= 2) {
+          e.preventDefault();
+          const scannedCode = buffer;
+          buffer = "";
+          processBarcodeScan(scannedCode);
+        } else {
+          buffer = "";
+        }
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        buffer += e.key;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    activeSession,
+    activeCartId,
+    showCloseModal,
+    showHeldModal,
+    showCheckoutModal,
+    showSuccessModal,
+    showRefundModal,
+  ]);
 
   // If Session Loading
   if (isSessionLoading) {
