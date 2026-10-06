@@ -14,6 +14,9 @@ const PAD = 6;
 // Sidebar width animates over 200ms when the tour force-expands it.
 const SETTLE_MS = 260;
 
+// Current step survives AppShell remounts (e.g. browser Back during the tour).
+let stepAcrossRoutes = 0;
+
 type Box = { top: number; left: number; width: number; height: number };
 type Placement = { mode: "anchored"; top: number; left: number } | { mode: "sheet" };
 
@@ -66,20 +69,29 @@ function place(box: Box | null, cardH: number): Placement {
 
 export function ProductTour() {
   const { tourOpen, closeTour } = useOnboarding();
-  const [index, setIndex] = useState(0);
+  const [index, setIndexState] = useState(() => stepAcrossRoutes);
   const [box, setBox] = useState<Box | null>(null);
   const [placement, setPlacement] = useState<Placement>({ mode: "sheet" });
   const cardRef = useRef<HTMLDivElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  const setIndex = useCallback((update: number | ((i: number) => number)) => {
+    setIndexState((prev) => {
+      const value = typeof update === "function" ? update(prev) : update;
+      stepAcrossRoutes = value;
+      return value;
+    });
+  }, []);
   const step = TOUR_STEPS[index]!;
   const last = index === TOUR_STEPS.length - 1;
 
+  // Reset only when the tour closes, so a remount mid-tour keeps the current step.
   useEffect(() => {
-    if (tourOpen) setIndex(0);
-  }, [tourOpen]);
+    if (!tourOpen) setIndex(0);
+  }, [tourOpen, setIndex]);
 
   const measure = useCallback(() => {
-    const el = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`);
-    el?.scrollIntoView({ block: "nearest", inline: "nearest" });
     const next = measureTarget(step.target);
     setBox(next);
     setPlacement(place(next, cardRef.current?.offsetHeight ?? 240));
@@ -88,10 +100,14 @@ export function ProductTour() {
   // Measure now, then again once the sidebar has finished expanding.
   useLayoutEffect(() => {
     if (!tourOpen) return;
+    // Bring the target into view once per step; later scrolls are the user's.
+    document
+      .querySelector<HTMLElement>(`[data-tour="${step.target}"]`)
+      ?.scrollIntoView({ block: "nearest", inline: "nearest" });
     measure();
     const t = window.setTimeout(measure, SETTLE_MS);
     return () => window.clearTimeout(t);
-  }, [tourOpen, measure]);
+  }, [tourOpen, measure, step.target]);
 
   useEffect(() => {
     if (!tourOpen) return;
@@ -112,29 +128,64 @@ export function ProductTour() {
   const next = useCallback(() => {
     if (last) closeTour(true);
     else setIndex((i) => i + 1);
-  }, [last, closeTour]);
-  const back = useCallback(() => setIndex((i) => Math.max(0, i - 1)), []);
+  }, [last, closeTour, setIndex]);
+  const back = useCallback(() => setIndex((i) => Math.max(0, i - 1)), [setIndex]);
 
   useEffect(() => {
     if (!tourOpen) return;
+    // Capture phase: the tour owns the keyboard while it is open, so page-level
+    // listeners (POS barcode scanner, shortcuts) don't react behind it.
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
+        e.stopPropagation();
         closeTour(true);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
+        e.stopPropagation();
         next();
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
+        e.stopPropagation();
         back();
+      } else if (e.key === "Tab") {
+        // Keep focus inside the card (aria-modal).
+        const card = cardRef.current;
+        if (!card) return;
+        const items = Array.from(card.querySelectorAll<HTMLElement>("button, a[href]"));
+        if (items.length === 0) return;
+        const first = items[0]!;
+        const lastItem = items[items.length - 1]!;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          lastItem.focus();
+        } else if (!e.shiftKey && document.activeElement === lastItem) {
+          e.preventDefault();
+          first.focus();
+        }
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.stopPropagation();
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [tourOpen, next, back, closeTour]);
 
+  // Remember what had focus before the tour and give it back afterwards.
   useEffect(() => {
-    if (tourOpen) cardRef.current?.focus({ preventScroll: true });
+    if (tourOpen) {
+      returnFocusRef.current = document.activeElement as HTMLElement | null;
+      return;
+    }
+    returnFocusRef.current?.focus?.({ preventScroll: true });
+    returnFocusRef.current = null;
+  }, [tourOpen]);
+
+  // Keep keyboard users on the primary action as they step through.
+  useEffect(() => {
+    if (!tourOpen) return;
+    const t = window.setTimeout(() => nextRef.current?.focus({ preventScroll: true }), 30);
+    return () => window.clearTimeout(t);
   }, [tourOpen, index]);
 
   if (typeof document === "undefined") return null;
@@ -170,6 +221,7 @@ export function ProductTour() {
           ) : null}
 
           <motion.div
+            key={placement.mode}
             ref={cardRef}
             data-tour-card
             role="dialog"
@@ -178,7 +230,7 @@ export function ProductTour() {
             aria-describedby="tour-body"
             tabIndex={-1}
             className={cn(
-              "absolute rounded-xl border bg-popover text-popover-foreground shadow-lg outline-none",
+              "absolute max-h-[calc(100vh-2rem)] overflow-y-auto rounded-xl border bg-popover text-popover-foreground shadow-lg outline-none",
               placement.mode === "sheet" && "inset-x-3 bottom-3",
             )}
             style={placement.mode === "sheet" ? {} : { width: CARD_WIDTH }}
@@ -249,7 +301,7 @@ export function ProductTour() {
                     Back
                   </Button>
                 ) : null}
-                <Button size="sm" onClick={next}>
+                <Button ref={nextRef} size="sm" onClick={next}>
                   {last ? (
                     <>
                       Finish

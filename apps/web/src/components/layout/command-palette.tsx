@@ -14,14 +14,18 @@ import { navGroups } from "@/lib/nav";
 export function CommandPalette({
   open,
   onOpenChange,
+  disabled = false,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  /** Ignore the Ctrl/Cmd+K shortcut (e.g. while the product tour is running). */
+  disabled?: boolean;
 }) {
   const navigate = useNavigate();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (disabled) return;
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         onOpenChange(!open);
@@ -29,7 +33,7 @@ export function CommandPalette({
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, disabled]);
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>

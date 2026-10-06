@@ -47,6 +47,15 @@ const faqs: [string, string][] = [
 ];
 
 function HelpPage() {
+  return (
+    <AppShell>
+      <HelpContent />
+    </AppShell>
+  );
+}
+
+// Rendered inside AppShell so it can reach the onboarding provider.
+function HelpContent() {
   const { startTour, restoreChecklist, state } = useOnboarding();
 
   const cards = [
@@ -81,7 +90,7 @@ function HelpPage() {
   ];
 
   return (
-    <AppShell>
+    <>
       <PageHeader eyebrow="Support" title="Help & Support" description={description} />
       <motion.div
         variants={staggerContainer(0.06)}
@@ -120,6 +129,6 @@ function HelpPage() {
           ))}
         </Accordion>
       </Section>
-    </AppShell>
+    </>
   );
 }

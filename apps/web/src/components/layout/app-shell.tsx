@@ -553,7 +553,7 @@ function AppShellInner({ children, rightPanel, fullBleed = false }: AppShellProp
         </main>
       </div>
 
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} disabled={tourOpen} />
     </div>
   );
 }

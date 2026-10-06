@@ -23,7 +23,13 @@ const DEFAULT_STATE: OnboardingState = {
 
 const storageKey = (userId: string) => `valgrow-onboarding:${userId}`;
 
+// Per-user state kept in memory too, so it survives AppShell remounts even when
+// localStorage is unavailable (private mode, blocked storage).
+const memoryCache = new Map<string, OnboardingState>();
+
 function load(userId: string): OnboardingState {
+  const cached = memoryCache.get(userId);
+  if (cached) return cached;
   try {
     const raw = localStorage.getItem(storageKey(userId));
     if (!raw) return DEFAULT_STATE;
@@ -34,6 +40,7 @@ function load(userId: string): OnboardingState {
 }
 
 function save(userId: string, state: OnboardingState) {
+  memoryCache.set(userId, state);
   try {
     localStorage.setItem(storageKey(userId), JSON.stringify(state));
   } catch {

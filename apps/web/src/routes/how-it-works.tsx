@@ -40,6 +40,15 @@ function Connector({ active }: { active: boolean }) {
 }
 
 function HowItWorksPage() {
+  return (
+    <AppShell>
+      <HowItWorksContent />
+    </AppShell>
+  );
+}
+
+// Rendered inside AppShell so it can reach the onboarding provider.
+function HowItWorksContent() {
   const reduceMotion = useReducedMotion();
   const { startTour } = useOnboarding();
   const [selected, setSelected] = useState(0);
@@ -71,7 +80,7 @@ function HowItWorksPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <PageHeader
         eyebrow="Getting started"
         title={title}
@@ -263,6 +272,6 @@ function HowItWorksPage() {
           </Button>
         </div>
       </section>
-    </AppShell>
+    </>
   );
 }
