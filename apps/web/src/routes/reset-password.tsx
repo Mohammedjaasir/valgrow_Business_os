@@ -46,7 +46,7 @@ function ResetPasswordPage() {
           <Label htmlFor="confirm">Confirm password</Label>
           <Input id="confirm" type="password" placeholder="••••••••" />
         </div>
-        <Button type="submit" className="w-full">
+        <Button type="submit" size="lg" className="w-full">
           Update password
         </Button>
       </form>

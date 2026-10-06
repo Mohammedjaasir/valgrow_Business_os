@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { Button } from "@/components/ui/button";
@@ -54,7 +55,7 @@ function LoginPage() {
       footer={
         <>
           New to ValGrow?{" "}
-          <Link to="/" className="font-semibold text-primary hover:underline">
+          <Link to="/" className="font-medium text-primary hover:underline">
             Explore the foundation
           </Link>
         </>
@@ -62,7 +63,11 @@ function LoginPage() {
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
         {errorMsg ? (
-          <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+          <div
+            role="alert"
+            className="flex items-start gap-2 rounded-md border border-destructive/20 bg-destructive-soft p-3 text-[13px] text-destructive"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             {errorMsg}
           </div>
         ) : null}
@@ -75,6 +80,7 @@ function LoginPage() {
             placeholder="you@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="h-10"
             required
           />
         </div>
@@ -94,6 +100,7 @@ function LoginPage() {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="h-10"
             required
           />
         </div>
@@ -101,15 +108,22 @@ function LoginPage() {
           <Checkbox id="remember" defaultChecked />
           Keep me signed in on this device
         </label>
-        <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-          {loginMutation.isPending ? "Signing in…" : "Continue"}
+        <Button type="submit" size="lg" className="w-full" disabled={loginMutation.isPending}>
+          {loginMutation.isPending ? (
+            <>
+              <Loader2 className="animate-spin" />
+              Signing in…
+            </>
+          ) : (
+            "Sign in"
+          )}
         </Button>
         <div className="flex items-center gap-3">
           <Separator className="flex-1" />
-          <span className="text-xs uppercase tracking-widest text-muted-foreground">or</span>
+          <span className="text-xs text-muted-foreground">or</span>
           <Separator className="flex-1" />
         </div>
-        <Button type="button" variant="outline" className="w-full">
+        <Button type="button" variant="outline" size="lg" className="w-full">
           Continue with SSO
         </Button>
       </form>

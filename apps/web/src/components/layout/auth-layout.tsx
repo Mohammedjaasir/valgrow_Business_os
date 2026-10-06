@@ -1,12 +1,28 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ShieldCheck, Sparkles, Workflow } from "lucide-react";
+import { motion } from "motion/react";
+import { BarChart3, Boxes, Check, ShoppingCart } from "lucide-react";
+import { fadeRise, staggerContainer, staggerItem } from "@/lib/motion";
 
 const highlights = [
-  { icon: Workflow, text: "One shared layout for every future module" },
-  { icon: ShieldCheck, text: "Role and permission ready foundation" },
-  { icon: Sparkles, text: "AI-first workspace, built to extend" },
+  { icon: Boxes, title: "Inventory & POS", text: "Live stock, batches and a fast checkout." },
+  { icon: ShoppingCart, title: "Purchasing & CRM", text: "From purchase order to loyal customer." },
+  { icon: BarChart3, title: "Finance & reports", text: "Ledgers, taxes and real-time insight." },
 ];
+
+function LogoMark({ size = "md" }: { size?: "md" | "lg" }) {
+  return (
+    <span
+      className={
+        size === "lg"
+          ? "flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 font-display text-sm font-bold text-white ring-1 ring-white/25 backdrop-blur"
+          : "flex h-8 w-8 items-center justify-center rounded-md bg-primary font-display text-xs font-bold text-primary-foreground"
+      }
+    >
+      VG
+    </span>
+  );
+}
 
 export function AuthLayout({
   title,
@@ -20,61 +36,72 @@ export function AuthLayout({
   footer?: ReactNode;
 }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-sidebar p-12 lg:flex lg:flex-col lg:justify-between">
-        <div className="gradient-brand pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full opacity-30 blur-3xl" />
-        <div className="gradient-brand pointer-events-none absolute -bottom-32 right-0 h-80 w-80 rounded-full opacity-20 blur-3xl" />
+    <div className="grid min-h-screen bg-background lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="relative hidden overflow-hidden bg-primary p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="gradient-brand absolute inset-0" />
+        <div className="bg-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_top_left,black_20%,transparent_70%)]" />
+        <div className="animate-hero-drift-b pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 -left-20 h-[26rem] w-[26rem] rounded-full bg-black/20 blur-3xl" />
+
         <Link to="/" className="relative flex items-center gap-3">
-          <span className="gradient-brand flex h-10 w-10 items-center justify-center rounded-xl font-bold text-primary-foreground">
-            V
-          </span>
+          <LogoMark size="lg" />
           <span className="leading-tight">
-            <span className="block font-bold">ValGrow</span>
-            <span className="block text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              Business OS
-            </span>
+            <span className="block font-display text-[15px] font-semibold">ValGrow</span>
+            <span className="block text-xs text-white/70">Business OS</span>
           </span>
         </Link>
-        <div className="relative max-w-md space-y-6">
-          <h2 className="text-4xl font-bold leading-tight">
-            The <span className="text-gradient-brand">AI-first</span> operating system for your
-            business.
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            This is the foundation workspace — layouts, navigation and shared components that every
-            future module plugs into.
-          </p>
-          <ul className="space-y-3">
+
+        <motion.div
+          variants={staggerContainer(0.08)}
+          initial="hidden"
+          animate="show"
+          className="relative max-w-md space-y-8"
+        >
+          <motion.h2
+            variants={staggerItem}
+            className="text-4xl font-semibold leading-[1.1] tracking-tight"
+          >
+            Run your entire business from one place.
+          </motion.h2>
+          <ul className="space-y-5">
             {highlights.map((h) => (
-              <li key={h.text} className="flex items-center gap-3 text-sm">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <motion.li key={h.title} variants={staggerItem} className="flex gap-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/20">
                   <h.icon className="h-4 w-4" />
                 </span>
-                {h.text}
-              </li>
+                <span>
+                  <span className="block text-sm font-semibold">{h.title}</span>
+                  <span className="block text-sm text-white/70">{h.text}</span>
+                </span>
+              </motion.li>
             ))}
           </ul>
+        </motion.div>
+
+        <div className="relative flex items-center gap-2 text-xs text-white/70">
+          <Check className="h-3.5 w-3.5" />
+          Secure, role-based access for every branch
         </div>
-        <p className="relative text-xs text-muted-foreground">
-          Placeholder content · no authentication logic
-        </p>
       </div>
 
       <div className="flex items-center justify-center px-5 py-12 sm:px-10">
-        <div className="w-full max-w-sm space-y-8">
-          <div className="flex items-center gap-3 lg:hidden">
-            <span className="gradient-brand flex h-10 w-10 items-center justify-center rounded-xl font-bold text-primary-foreground">
-              V
-            </span>
-            <span className="font-bold">ValGrow Business OS</span>
+        <motion.div
+          variants={fadeRise}
+          initial="hidden"
+          animate="show"
+          className="w-full max-w-sm space-y-8"
+        >
+          <div className="flex items-center gap-2.5 lg:hidden">
+            <LogoMark />
+            <span className="font-display text-[15px] font-semibold">ValGrow Business OS</span>
           </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold">{title}</h1>
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>
           {children}
           {footer ? <div className="text-sm text-muted-foreground">{footer}</div> : null}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

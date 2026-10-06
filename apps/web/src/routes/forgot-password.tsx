@@ -39,7 +39,7 @@ function ForgotPasswordPage() {
           <Label htmlFor="email">Work email</Label>
           <Input id="email" type="email" placeholder="you@company.com" />
         </div>
-        <Button type="submit" className="w-full">
+        <Button type="submit" size="lg" className="w-full">
           Send reset link
         </Button>
       </form>
