@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Package, Boxes, SlidersHorizontal, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { exportToCsv, getExportFilename } from "@/lib/exportCsv";
 
 const title = "Live Stock Levels";
 const description =
@@ -325,6 +326,122 @@ function InventoryStockPage() {
     },
   ];
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      interface InventoryExportItem {
+        productName: string;
+        sku: string;
+        barcode: string;
+        category: string;
+        warehouse: string;
+        onHand: number;
+        reserved: number;
+        available: number;
+        reorderPoint: number | string;
+        stockStatus: string;
+      }
+
+      const exportItems: InventoryExportItem[] = [];
+
+      if (catalogProducts.length > 0) {
+        for (const prod of catalogProducts) {
+          const stockLevels = stockByProductMap.get(prod.id) || [];
+          if (stockLevels.length > 0) {
+            for (const s of stockLevels) {
+              const onHand = Number(s.onHand || 0);
+              const reserved = Number(s.reserved || 0);
+              const available = Number(s.available || 0);
+              const reorderPoint =
+                s.reorderLevel !== null && s.reorderLevel !== undefined ? Number(s.reorderLevel) : "";
+              const stockStatus =
+                available <= 0
+                  ? "Out of Stock"
+                  : s.reorderLevel !== null && s.reorderLevel !== undefined && available <= Number(s.reorderLevel)
+                  ? "Low Stock"
+                  : "In Stock";
+
+              exportItems.push({
+                productName: s.product?.name || prod.name,
+                sku: s.variant?.sku || s.product?.sku || prod.sku || "",
+                barcode: prod.barcode || "",
+                category: prod.category?.name || "Unassigned",
+                warehouse: s.warehouse ? `${s.warehouse.name}${s.location?.name ? ` (${s.location.name})` : ""}` : "Unassigned",
+                onHand,
+                reserved,
+                available,
+                reorderPoint,
+                stockStatus,
+              });
+            }
+          } else {
+            exportItems.push({
+              productName: prod.name,
+              sku: prod.sku || "",
+              barcode: prod.barcode || "",
+              category: prod.category?.name || "Unassigned",
+              warehouse: warehouses[0]?.name ? `${warehouses[0].name} (Unstocked)` : "Unassigned",
+              onHand: 0,
+              reserved: 0,
+              available: 0,
+              reorderPoint: "",
+              stockStatus: "Out of Stock",
+            });
+          }
+        }
+      } else if (stockData?.data && stockData.data.length > 0) {
+        for (const s of stockData.data) {
+          const onHand = Number(s.onHand || 0);
+          const reserved = Number(s.reserved || 0);
+          const available = Number(s.available || 0);
+          const reorderPoint =
+            s.reorderLevel !== null && s.reorderLevel !== undefined ? Number(s.reorderLevel) : "";
+          const stockStatus =
+            available <= 0
+              ? "Out of Stock"
+              : s.reorderLevel !== null && s.reorderLevel !== undefined && available <= Number(s.reorderLevel)
+              ? "Low Stock"
+              : "In Stock";
+
+          exportItems.push({
+            productName: s.product?.name || "Unassigned Product",
+            sku: s.variant?.sku || s.product?.sku || "",
+            barcode: "",
+            category: "Unassigned",
+            warehouse: s.warehouse ? `${s.warehouse.name}${s.location?.name ? ` (${s.location.name})` : ""}` : "Unassigned",
+            onHand,
+            reserved,
+            available,
+            reorderPoint,
+            stockStatus,
+          });
+        }
+      }
+
+      exportToCsv({
+        filename: getExportFilename("valgrow-inventory"),
+        columns: [
+          { header: "Product Name", accessor: (i) => i.productName },
+          { header: "SKU", accessor: (i) => i.sku },
+          { header: "Barcode", accessor: (i) => i.barcode },
+          { header: "Category", accessor: (i) => i.category },
+          { header: "Warehouse", accessor: (i) => i.warehouse },
+          { header: "On Hand", accessor: (i) => i.onHand },
+          { header: "Reserved", accessor: (i) => i.reserved },
+          { header: "Available", accessor: (i) => i.available },
+          { header: "Reorder Point", accessor: (i) => i.reorderPoint },
+          { header: "Stock Status", accessor: (i) => i.stockStatus },
+        ],
+        data: exportItems,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const isSubmitting = createAdjustmentMutation.isPending;
 
   return (
@@ -335,6 +452,8 @@ function InventoryStockPage() {
         eyebrow="Inventory"
         actionLabel="Adjust stock"
         onAction={() => handleOpenAdjust()}
+        onExport={handleExport}
+        isExporting={isExporting}
         stats={stats}
         columns={columns}
         rows={rows}

@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Eye, Edit2 } from "lucide-react";
+import { exportToCsv, getExportFilename } from "@/lib/exportCsv";
 
 const title = "Customers";
 const description = "Customer Directory, credit limits, contact information, and billing terms.";
@@ -260,6 +261,37 @@ function CustomersPage() {
     },
   ];
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      const customers = customersData || [];
+      exportToCsv({
+        filename: getExportFilename("valgrow-customers"),
+        columns: [
+          { header: "Customer Code", accessor: (c) => c.customerCode || "" },
+          { header: "Customer Name", accessor: (c) => c.name || "" },
+          { header: "Email", accessor: (c) => c.email || "" },
+          { header: "Phone", accessor: (c) => c.phone || "" },
+          { header: "City", accessor: (c) => c.city || "" },
+          { header: "Payment Terms", accessor: (c) => c.paymentTerms || "" },
+          {
+            header: "Credit Limit",
+            accessor: (c) =>
+              c.creditLimit !== null && c.creditLimit !== undefined ? Number(c.creditLimit) : "",
+          },
+          { header: "Tax ID / GSTIN", accessor: (c) => c.taxIdNumber || c.taxNumber || "" },
+          { header: "Status", accessor: (c) => c.status || "" },
+        ],
+        data: customers,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <>
       <ListPage guide="customers"
@@ -272,6 +304,8 @@ function CustomersPage() {
           resetForm();
           setIsAddOpen(true);
         }}
+        onExport={handleExport}
+        isExporting={isExporting}
         stats={stats}
         columns={columns}
         rows={rows}

@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { Pencil, Trash2, Loader2, Boxes, Package } from "lucide-react";
 import { toast } from "sonner";
+import { exportToCsv, getExportFilename } from "@/lib/exportCsv";
 
 const title = "Products & Catalog";
 const description =
@@ -109,6 +110,50 @@ function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
   const [formData, setFormData] = useState<ProductFormState>(initialFormState);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      const products = productsData?.data || [];
+      exportToCsv({
+        filename: getExportFilename("valgrow-products"),
+        columns: [
+          { header: "Product Name", accessor: (p) => p.name },
+          { header: "SKU", accessor: (p) => p.sku || "" },
+          { header: "Barcode", accessor: (p) => p.barcode || "" },
+          { header: "Product Type", accessor: (p) => p.type || "" },
+          { header: "Category", accessor: (p) => p.category?.name || "Unassigned" },
+          { header: "Brand", accessor: (p) => p.brand?.name || "Generic" },
+          { header: "Unit", accessor: (p) => (p.unit ? `${p.unit.name} (${p.unit.code})` : "") },
+          { header: "Cost Price", accessor: (p) => (p.costPrice !== null && p.costPrice !== undefined ? Number(p.costPrice) : "") },
+          {
+            header: "Retail Price",
+            accessor: (p) => {
+              const defaultRetailPrice = p.priceLevels?.find(
+                (pr: any) => pr.tier === "RETAIL" && !pr.variantId
+              )?.price;
+              return defaultRetailPrice !== undefined && defaultRetailPrice !== null
+                ? Number(defaultRetailPrice)
+                : p.costPrice !== null && p.costPrice !== undefined
+                ? Number(p.costPrice)
+                : "";
+            },
+          },
+          {
+            header: "Tax Rule",
+            accessor: (p) => (p.tax ? `${p.tax.name} (${p.tax.rate}%)` : "No Tax"),
+          },
+          { header: "Status", accessor: (p) => p.status || "" },
+          { header: "Description", accessor: (p) => p.description || "" },
+        ],
+        data: products,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleOpenAdd = () => {
     setEditingProduct(null);
@@ -284,6 +329,8 @@ function ProductsPage() {
         eyebrow="Master Data"
         actionLabel="New product"
         onAction={handleOpenAdd}
+        onExport={handleExport}
+        isExporting={isExporting}
         stats={stats}
         columns={columns}
         rows={rows}

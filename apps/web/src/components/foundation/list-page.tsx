@@ -104,6 +104,8 @@ export function ListPage({
   eyebrow,
   actionLabel = "New record",
   onAction,
+  onExport,
+  isExporting = false,
   stats = [],
   columns,
   rows,
@@ -118,6 +120,8 @@ export function ListPage({
   eyebrow?: string;
   actionLabel?: string;
   onAction?: () => void;
+  onExport?: () => void;
+  isExporting?: boolean;
   stats?: { label: string; value: string; hint?: string }[];
   columns: Column<ListRow>[];
   rows: ListRow[];
@@ -136,9 +140,9 @@ export function ListPage({
         {...(guide ? { guide } : {})}
         actions={
           <>
-            <Button variant="outline">
+            <Button variant="outline" onClick={onExport} disabled={isExporting}>
               <Download />
-              Export
+              {isExporting ? "Exporting…" : "Export"}
             </Button>
             <Button onClick={onAction}>
               <Plus />
